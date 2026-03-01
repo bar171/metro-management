@@ -1,6 +1,6 @@
 import type { Axis, Customer, Service, ResourceProfile, MetricSnapshot, LogEntry } from '@/types';
 
-const axisNames = ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot'];
+const axisNames = ['Metro-pipeline', 'Rokak', 'Agamim', 'Logamrar', 'Navy'];
 const customerNames = ['Acme Corp', 'Globex Industries', 'Initech', 'Umbrella Inc', 'Cyberdyne Systems', 'Stark Industries', 'Wayne Enterprises', 'Oscorp', 'LexCorp', 'Aperture Science', 'Massive Dynamic', 'Soylent Corp'];
 const serviceNames = ['ingestor', 'transformer', 'enricher', 'validator', 'router', 'aggregator', 'publisher', 'archiver'];
 const logMessages: Record<string, string[]> = {
@@ -44,7 +44,7 @@ export function generateResourceProfiles(): ResourceProfile[] {
 export function generateAxes(): Axis[] {
   return axisNames.map((name, i) => ({
     id: `axis-${i + 1}`,
-    name: `Axis-${name}`,
+    name: name,
     environment: i < 3 ? 'prod' as const : 'dev' as const,
     priority: i === 0 ? 'critical' as const : i < 3 ? 'high' as const : 'normal' as const,
     kafkaCluster: `kafka-cluster-${(i % 3) + 1}`,

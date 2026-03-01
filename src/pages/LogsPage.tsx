@@ -57,7 +57,7 @@ export default function LogsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Axes</SelectItem>
+              <SelectItem value="all">All Pipelines</SelectItem>
               {axes.map(a => (
                 <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
               ))}

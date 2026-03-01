@@ -23,7 +23,7 @@ import {
 
 const navItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
-  { title: 'Axes', url: '/axes', icon: GitBranch },
+  { title: 'Pipelines', url: '/pipelines', icon: GitBranch },
   { title: 'Customers', url: '/customers', icon: Users },
   { title: 'Metrics', url: '/metrics', icon: BarChart3 },
   { title: 'Resources', url: '/resources', icon: Server },
