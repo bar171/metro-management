@@ -89,6 +89,7 @@ export default function PipelineCreatorPage() {
                                 <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="dev">dev</SelectItem>
+                                    <SelectItem value="prep">prep</SelectItem>
                                     <SelectItem value="prod">prod</SelectItem>
                                 </SelectContent>
                             </Select>

@@ -8,8 +8,8 @@ interface AppState {
   setTheme: (t: ThemeMode) => void;
 
   // Environment filter
-  envFilter: 'all' | 'prod' | 'dev';
-  setEnvFilter: (e: 'all' | 'prod' | 'dev') => void;
+  envFilter: 'all' | 'prod' | 'prep' | 'dev';
+  setEnvFilter: (e: 'all' | 'prod' | 'prep' | 'dev') => void;
 
   // Data
   pipelines: Pipeline[];

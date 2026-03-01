@@ -1,4 +1,4 @@
-export type Environment = 'prod' | 'dev';
+export type Environment = 'prod' | 'prep' | 'dev';
 export type Priority = 'normal' | 'high' | 'critical';
 export type ServiceStatus = 'healthy' | 'degraded' | 'lagging';
 export type Severity = 'critical' | 'warning' | 'info';

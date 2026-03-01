@@ -52,7 +52,7 @@ export function generatePipelines(): Pipeline[] {
       id: `pipeline-${i + 1}`,
       name: name,
       type,
-      environment: i < 3 ? 'prod' as const : 'dev' as const,
+      environment: i === 0 ? 'prod' as const : i === 1 ? 'prep' as const : 'dev' as const,
       priority: i === 0 ? 'critical' as const : i < 3 ? 'high' as const : 'normal' as const,
       kafkaCluster: `kafka-cluster-${(i % 3) + 1}`,
       databaseInstance: `pg-instance-${(i % 2) + 1}`,

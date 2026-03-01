@@ -40,6 +40,7 @@ export function AppHeader() {
           <SelectContent>
             <SelectItem value="all">All Envs</SelectItem>
             <SelectItem value="prod">Prod</SelectItem>
+            <SelectItem value="prep">Prep</SelectItem>
             <SelectItem value="dev">Dev</SelectItem>
           </SelectContent>
         </Select>

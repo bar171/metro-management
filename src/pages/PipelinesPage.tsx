@@ -153,6 +153,7 @@ export default function PipelinesPage() {
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="dev">dev</SelectItem>
+                          <SelectItem value="prep">prep</SelectItem>
                           <SelectItem value="prod">prod</SelectItem>
                         </SelectContent>
                       </Select>
