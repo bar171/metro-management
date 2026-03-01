@@ -53,7 +53,7 @@ export default function Dashboard() {
       {/* KPI Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}>
-          <KpiTile label="Total Axes" value={filteredAxes.length} subtitle={`${axes.filter(a => a.priority === 'critical').length} critical`} />
+          <KpiTile label="Total Pipelines" value={filteredAxes.length} subtitle={`${axes.filter(a => a.priority === 'critical').length} critical`} />
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
           <KpiTile label="Total Pods" value={totalPods} variant="accent" />
@@ -99,15 +99,15 @@ export default function Dashboard() {
             <Button
               variant="outline"
               className="w-full justify-start gap-2 text-xs h-9"
-              onClick={() => toast.success('Scaling all high-priority axes...', { description: 'This is a simulated action.' })}
+              onClick={() => toast.success('Scaling all high-priority pipelines...', { description: 'This is a simulated action.' })}
             >
               <Zap className="h-3.5 w-3.5 text-status-degraded" />
-              Scale All High-Priority Axes
+              Scale All High-Priority Pipelines
             </Button>
             <Button
               variant="outline"
               className="w-full justify-start gap-2 text-xs h-9"
-              onClick={() => toast.info('Rolling stale pods...', { description: 'Simulating pod restart across all axes.' })}
+              onClick={() => toast.info('Rolling stale pods...', { description: 'Simulating pod restart across all pipelines.' })}
             >
               <RotateCcw className="h-3.5 w-3.5 text-primary" />
               Roll Stale Pods

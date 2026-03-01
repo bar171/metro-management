@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import type { Axis, ServiceStatus } from '@/types';
 
-export default function AxesPage() {
+export default function PipelinesPage() {
   const { axes, customers, services, selectedAxisId, setSelectedAxisId, envFilter, updateService, updateCustomer } = useAppStore();
   const [search, setSearch] = useState('');
   const [saving, setSaving] = useState(false);
@@ -39,7 +39,7 @@ export default function AxesPage() {
     if (!svc) return;
     const axis = axes.find(a => a.id === svc.axisId);
     if (axis?.priority === 'critical' && replicas === 0) {
-      toast.error('Cannot scale to 0 on critical axis');
+      toast.error('Cannot scale to 0 on critical pipeline');
       return;
     }
     setSaving(true);
@@ -56,7 +56,7 @@ export default function AxesPage() {
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
-              placeholder="Search axes..."
+              placeholder="Search pipelines..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="h-8 pl-8 text-xs bg-surface-1"
@@ -174,7 +174,7 @@ export default function AxesPage() {
                 </TabsContent>
 
                 <TabsContent value="customers" className="space-y-3">
-                  <p className="text-xs text-muted-foreground">Customers mapped to this axis:</p>
+                  <p className="text-xs text-muted-foreground">Customers mapped to this pipeline:</p>
                   {axisCustomers.length === 0 ? (
                     <p className="text-xs text-muted-foreground font-mono italic">No customers assigned</p>
                   ) : (
@@ -212,7 +212,7 @@ export default function AxesPage() {
               animate={{ opacity: 1 }}
               className="flex items-center justify-center h-full text-muted-foreground text-sm font-mono"
             >
-              Select an axis to view details
+              Select a pipeline to view details
             </motion.div>
           )}
         </AnimatePresence>

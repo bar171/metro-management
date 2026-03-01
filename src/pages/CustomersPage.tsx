@@ -24,7 +24,7 @@ export default function CustomersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Customers</h2>
-          <p className="text-xs text-muted-foreground font-mono">{customers.length} customers across {axes.length} axes</p>
+          <p className="text-xs text-muted-foreground font-mono">{customers.length} customers across {axes.length} pipelines</p>
         </div>
         <div className="flex items-center gap-2">
           <Select value={volFilter} onValueChange={setVolFilter}>
@@ -48,7 +48,7 @@ export default function CustomersPage() {
           <TableHeader>
             <TableRow className="bg-surface-1">
               <TableHead className="text-[10px] font-mono uppercase">Name</TableHead>
-              <TableHead className="text-[10px] font-mono uppercase">Axis</TableHead>
+              <TableHead className="text-[10px] font-mono uppercase">Pipeline</TableHead>
               <TableHead className="text-[10px] font-mono uppercase">Volume</TableHead>
               <TableHead className="text-[10px] font-mono uppercase">Criticality</TableHead>
             </TableRow>

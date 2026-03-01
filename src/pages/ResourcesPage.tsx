@@ -41,7 +41,7 @@ export default function ResourcesPage() {
     const axis = axes.find(a => a.id === svc.axisId);
     const newReplicas = Math.max(0, Math.min(16, svc.replicas + delta));
     if (axis?.priority === 'critical' && newReplicas === 0) {
-      toast.error('Cannot scale to 0 replicas on critical axis');
+      toast.error('Cannot scale to 0 replicas on critical pipeline');
       return;
     }
     await updateService(svcId, { replicas: newReplicas });
@@ -52,7 +52,7 @@ export default function ResourcesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Resource Management</h2>
-          <p className="text-xs text-muted-foreground font-mono">{allServices.length} services across {axes.length} axes</p>
+          <p className="text-xs text-muted-foreground font-mono">{allServices.length} services across {axes.length} pipelines</p>
         </div>
         <div className="relative w-64">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -66,7 +66,7 @@ export default function ResourcesPage() {
             <TableRow className="bg-surface-1">
               <TableHead className="text-[10px] font-mono uppercase w-8">Status</TableHead>
               <TableHead className="text-[10px] font-mono uppercase">Service</TableHead>
-              <TableHead className="text-[10px] font-mono uppercase">Axis</TableHead>
+              <TableHead className="text-[10px] font-mono uppercase">Pipeline</TableHead>
               <TableHead className="text-[10px] font-mono uppercase">Priority</TableHead>
               <TableHead className="text-[10px] font-mono uppercase text-center">Replicas</TableHead>
               <TableHead className="text-[10px] font-mono uppercase">CPU</TableHead>
