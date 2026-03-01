@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
 import { StatusDot, PriorityBadge, EnvBadge, TypeBadge } from '@/components/shared/StatusIndicators';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Users, Server, Settings2, Plus, Trash2, ArrowRightLeft, RotateCcw } from 'lucide-react';
+import { Search, Users, Server, Settings2, Plus, Trash2, ArrowRightLeft, RotateCcw, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
@@ -24,24 +24,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { Pipeline, ServiceStatus, PipelineType, Environment, Priority } from '@/types';
 
 export default function PipelinesPage() {
   const {
     pipelines, groups, services,
     selectedPipelineId, setSelectedPipelineId, envFilter,
-    updateService, updatePipelineResources,
+    updateService,
     createPipeline, deletePipeline,
     createGroup, updateGroup
   } = useAppStore();
 
   const [search, setSearch] = useState('');
 
+  // Default to metro-pipeline if it exists and nothing is selected
+  React.useEffect(() => {
+    if (pipelines.length > 0 && !selectedPipelineId) {
+      const metro = pipelines.find(p => p.name.toLowerCase() === 'metro-pipeline');
+      if (metro) {
+        setSelectedPipelineId(metro.id);
+      } else {
+        setSelectedPipelineId(pipelines[0].id);
+      }
+    }
+  }, [pipelines, selectedPipelineId, setSelectedPipelineId]);
+
   // Pipeline Creation State
   const [isCreatePipelineOpen, setIsCreatePipelineOpen] = useState(false);
   const [newPipelineName, setNewPipelineName] = useState('');
   const [newPipelineType, setNewPipelineType] = useState<PipelineType>('BASIC');
-  const [newPipelineEnv, setNewPipelineEnv] = useState<Environment>('dev');
 
   // Group Creation State
   const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
@@ -75,7 +91,7 @@ export default function PipelinesPage() {
     await createPipeline({
       name: newPipelineName,
       type: newPipelineType,
-      environment: newPipelineEnv,
+      environment: envFilter === 'all' ? 'dev' : envFilter,
       priority: 'normal',
       kafkaCluster: 'new-cluster',
       databaseInstance: 'new-db',
@@ -124,7 +140,7 @@ export default function PipelinesPage() {
             <h3 className="font-semibold text-sm">Pipelines</h3>
             <Dialog open={isCreatePipelineOpen} onOpenChange={setIsCreatePipelineOpen}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8"><Plus className="h-4 w-4" /></Button>
+                <Button variant="default" size="sm" className="h-8 text-xs font-semibold"><Plus className="h-3 w-3 mr-1" /> Create Pipeline</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -144,17 +160,6 @@ export default function PipelinesPage() {
                           <SelectItem value="BASIC">BASIC</SelectItem>
                           <SelectItem value="STREAM">STREAM</SelectItem>
                           <SelectItem value="BACKFILL">BACKFILL</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium">Environment</label>
-                      <Select value={newPipelineEnv} onValueChange={(v) => setNewPipelineEnv(v as Environment)}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="dev">dev</SelectItem>
-                          <SelectItem value="prep">prep</SelectItem>
-                          <SelectItem value="prod">prod</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -191,7 +196,6 @@ export default function PipelinesPage() {
                   <div className="text-sm font-medium truncate">{pipeline.name}</div>
                   <div className="flex items-center flex-wrap gap-1.5 mt-0.5">
                     <TypeBadge type={pipeline.type} />
-                    <EnvBadge env={pipeline.environment} />
                     <PriorityBadge priority={pipeline.priority} />
                   </div>
                   {groupsForPipe.length > 0 && (
@@ -225,7 +229,6 @@ export default function PipelinesPage() {
                     <h2 className="text-xl font-bold flex items-center gap-2">
                       {selected.name}
                       <TypeBadge type={selected.type} />
-                      <EnvBadge env={selected.environment} />
                       <PriorityBadge priority={selected.priority} />
                     </h2>
                     {pipelineGroups.length > 0 ? (
@@ -276,16 +279,16 @@ export default function PipelinesPage() {
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                    <div className="rounded-lg border border-border bg-card p-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs items-stretch">
+                    <div className="rounded-lg border border-border bg-card p-3 flex flex-col justify-center">
                       <span className="text-muted-foreground font-mono text-[10px] uppercase">Kafka Cluster</span>
                       <p className="font-mono mt-1">{selected.kafkaCluster}</p>
                     </div>
-                    <div className="rounded-lg border border-border bg-card p-3">
+                    <div className="rounded-lg border border-border bg-card p-3 flex flex-col justify-center">
                       <span className="text-muted-foreground font-mono text-[10px] uppercase">Database</span>
                       <p className="font-mono mt-1">{selected.databaseInstance}</p>
                     </div>
-                    <div className="rounded-lg border border-border bg-card p-3">
+                    <div className="rounded-lg border border-border bg-card p-3 flex flex-col justify-center">
                       <span className="text-muted-foreground font-mono text-[10px] uppercase">Owner Groups</span>
                       <p className="font-mono mt-1">{pipelineGroups.length}</p>
                     </div>
@@ -293,22 +296,248 @@ export default function PipelinesPage() {
                   </div>
 
                   <div className="rounded-lg border border-border bg-card">
-                    <div className="px-4 py-2.5 border-b border-border text-sm font-medium flex justify-between items-center">
-                      Services Map
+                    <div className="px-5 py-3.5 border-b border-border text-sm font-semibold flex justify-between items-center text-foreground uppercase tracking-wider">
+                      Metro Microservices Flow
                     </div>
-                    <div className="divide-y divide-border">
-                      {pipelineServices.map(svc => (
-                        <div key={svc.id} className="px-4 py-3 flex items-center gap-4 text-xs">
-                          <StatusDot status={svc.status} pulse />
-                          <span className="font-mono font-medium w-40">{svc.name}</span>
-                          <span className="text-muted-foreground w-20">{svc.replicas} replicas</span>
-                          <span className="text-muted-foreground w-24">CPU: {svc.cpuLimit}m</span>
-                          <span className="text-muted-foreground w-24">Mem: {svc.memoryLimit}Mi</span>
-                          <Badge variant={svc.status === 'healthy' ? 'default' : 'destructive'} className="ml-auto text-[10px] font-mono tracking-wide">
-                            {svc.status}
-                          </Badge>
-                        </div>
-                      ))}
+                    <div className="overflow-x-auto overflow-y-hidden relative w-full custom-scrollbar h-[550px] bg-surface-1/5">
+                      <div className="min-w-[1450px] h-[550px] relative">
+                        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
+                          <defs>
+                            <marker id="arrow" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
+                              <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" className="text-muted-foreground/50" />
+                            </marker>
+                            <marker id="arrow-red" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
+                              <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" className="text-status-critical/80" />
+                            </marker>
+                          </defs>
+
+                          {/* push-data -> python-validate */}
+                          {pipelineServices.some(s => s.name === 'push-data') && (
+                            <path d="M 190 110 L 475 110 L 475 190 L 520 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                          )}
+
+                          {/* kafka-consumer -> python-validate */}
+                          {pipelineServices.some(s => s.name === 'kafka-consumer') && (
+                            <path d="M 190 190 L 520 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                          )}
+
+                          {/* scheduler -> get-data */}
+                          {pipelineServices.some(s => s.name === 'scheduler') && (
+                            <path d="M 190 270 L 280 270" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                          )}
+
+                          {/* get-data -> python-validate */}
+                          <path d="M 430 270 L 475 270 L 475 190 L 520 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+
+                          {/* Python Validate -> Transform Data/External Transform and Publish */}
+                          {pipelineServices.some(s => s.name === 'external-transform' || s.name === 'transform-data') ? (
+                            <>
+                              {/* Validate -> Transform Data */}
+                              {pipelineServices.some(s => s.name === 'transform-data') && (
+                                <path d="M 670 190 L 760 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                              )}
+
+                              {/* Validate -> External Transform */}
+                              {pipelineServices.some(s => s.name === 'external-transform') && (
+                                <path d="M 670 190 L 715 190 L 715 110 L 760 110" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                              )}
+
+                              {/* Bypass: Validate -> Publish directly (underneath the transform nodes) */}
+                              <path d="M 670 190 L 715 190 L 715 240 L 955 240 L 955 190 L 1000 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+
+                              {/* External Transform Loop Back -> Python Validate */}
+                              {pipelineServices.some(s => s.name === 'external-transform') && (
+                                <path d="M 835 80 L 835 40 L 595 40 L 595 154" stroke="currentColor" fill="none" strokeWidth="2" className="text-blue-500/60" markerEnd="url(#arrow-blue)" />
+                              )}
+
+                              {/* Transform Data -> Publish */}
+                              {pipelineServices.some(s => s.name === 'transform-data') && (
+                                <path d="M 910 190 L 1000 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                              )}
+                            </>
+                          ) : (
+                            /* Directly Validate -> Publish if no transform */
+                            <path d="M 670 190 L 1000 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                          )}
+
+                          {/* Python Validate -> Informative Validation (Invalid) */}
+                          <path d="M 595 220 L 595 274" stroke="currentColor" fill="none" strokeWidth="2" className="text-status-critical/60" markerEnd="url(#arrow-red)" />
+                          <text x="605" y="250" className="text-[10px] fill-status-critical/80 font-mono font-bold tracking-widest">INVALID</text>
+
+                          {/* Publish -> Sink Data */}
+                          <path d="M 1150 190 L 1240 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                        </svg>
+
+                        {/* Rendering Nodes Helper */}
+                        {(() => {
+                          const renderNode = (name: string, x: number, y: number) => {
+                            const svc = pipelineServices.find(s => s.name === name);
+
+                            const nodeContent = (
+                              <div
+                                className={`absolute rounded-md border flex flex-col justify-center gap-1.5 p-2 cursor-pointer
+                                  ${svc ? (svc.status === 'degraded' ? 'bg-status-critical/10 border-status-critical/50 shadow-[0_0_15px_rgba(255,0,0,0.15)]' :
+                                    svc.status === 'lagging' ? 'bg-status-warning/10 border-status-warning/50' :
+                                      'bg-card border-border shadow-sm') : 'bg-surface-1/30 border-dashed border-border/50 opacity-60'} z-10 transition-colors hover:border-primary/50`}
+                                style={{ left: x, top: y, width: 150, height: 60 }}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {svc ? <StatusDot status={svc.status} pulse /> : <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />}
+                                  <span className="font-mono text-[11px] font-bold truncate text-foreground" title={name}>{name}</span>
+                                </div>
+                                {svc && (
+                                  <div className="flex items-center justify-between text-[9px] text-muted-foreground font-mono">
+                                    <span>{svc.replicas} pods</span>
+                                    <span>{svc.cpuLimit}m</span>
+                                  </div>
+                                )}
+                              </div>
+                            );
+
+                            if (!svc) return <div key={name}>{nodeContent}</div>;
+
+                            return (
+                              <Popover key={name}>
+                                <PopoverTrigger asChild>
+                                  {nodeContent}
+                                </PopoverTrigger>
+                                <PopoverContent className="w-64 p-4 space-y-4" side="top">
+                                  <div className="flex items-center gap-2 border-b border-border pb-2">
+                                    <StatusDot status={svc.status} pulse />
+                                    <h4 className="font-mono font-bold text-sm">{svc.name}</h4>
+                                  </div>
+
+                                  <div className="space-y-3">
+                                    <div className="space-y-1.5">
+                                      <div className="flex items-center justify-between">
+                                        <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Pods</label>
+                                        <span className="font-mono text-[10px] text-muted-foreground">{svc.replicas} / 16</span>
+                                      </div>
+                                      <Slider
+                                        value={[svc.replicas]}
+                                        min={0}
+                                        max={16}
+                                        step={1}
+                                        onValueChange={([v]) => updateService(svc.id, { replicas: v })}
+                                      />
+                                    </div>
+
+                                    <div className="space-y-1.5 pt-2 border-t border-border">
+                                      <div className="flex items-center justify-between">
+                                        <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">CPU Limit</label>
+                                        <Input
+                                          type="number"
+                                          value={svc.cpuLimit}
+                                          onChange={e => updateService(svc.id, { cpuLimit: Number(e.target.value) || 10 })}
+                                          className="h-6 w-16 text-[10px] font-mono px-1.5"
+                                        />
+                                      </div>
+                                      <Slider
+                                        value={[svc.cpuLimit]}
+                                        min={100}
+                                        max={4000}
+                                        step={100}
+                                        onValueChange={([v]) => updateService(svc.id, { cpuLimit: v })}
+                                      />
+                                    </div>
+
+                                    <div className="space-y-1.5 pt-2 border-t border-border">
+                                      <div className="flex items-center justify-between">
+                                        <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Mem Limit (Mi)</label>
+                                        <Input
+                                          type="number"
+                                          value={svc.memoryLimit}
+                                          onChange={e => updateService(svc.id, { memoryLimit: Number(e.target.value) || 16 })}
+                                          className="h-6 w-16 text-[10px] font-mono px-1.5"
+                                        />
+                                      </div>
+                                      <Slider
+                                        value={[svc.memoryLimit]}
+                                        min={128}
+                                        max={8192}
+                                        step={128}
+                                        onValueChange={([v]) => updateService(svc.id, { memoryLimit: v })}
+                                      />
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            );
+                          };
+
+                          return (
+                            <>
+                              {/* Sources */}
+                              {pipelineServices.some(s => s.name === 'push-data') && renderNode('push-data', 40, 80)}
+                              {pipelineServices.some(s => s.name === 'kafka-consumer') && renderNode('kafka-consumer', 40, 160)}
+                              {pipelineServices.some(s => s.name === 'scheduler') && renderNode('scheduler', 40, 240)}
+
+                              {/* Get Data */}
+                              {renderNode('get-data', 280, 240)}
+                              {/* Validate */}
+                              {renderNode('python-validate', 520, 160)}
+                              {renderNode('informative-validation', 520, 280)}
+
+                              {/* Transform (Optional) */}
+                              {pipelineServices.some(s => s.name === 'external-transform' || s.name === 'transform-data') && (
+                                <>
+                                  {pipelineServices.some(s => s.name === 'external-transform') && renderNode('external-transform', 760, 80)}
+                                  {pipelineServices.some(s => s.name === 'transform-data') && renderNode('transform-data', 760, 160)}
+                                </>
+                              )}
+
+                              {/* Publish */}
+                              {renderNode('publish', 1000, 160)}
+
+                              {/* Sink */}
+                              {renderNode('sink-data', 1240, 160)}
+
+                              {/* Support Block Outline */}
+                              <div className="absolute left-[20px] w-[1400px] top-[450px] h-[80px] border-2 border-dashed border-border/40 bg-surface-1/20 rounded-xl" />
+                              <div className="absolute left-[36px] top-[441px] text-[10px] font-mono font-bold tracking-widest uppercase text-muted-foreground bg-card px-2">Global Support & Auxiliary Components</div>
+
+                              {/* Render global helper */}
+                              {(() => {
+                                const renderGlobalNode = (name: string, x: number, y: number) => {
+                                  // Find global service mapping (scheduler is here because it was listed as global)
+                                  // Wait, scheduler is already rendered above in 'Sources'!
+                                  // Let's just use the services list to find them globally.
+                                  const svc = services.find(s => s.name === name && s.pipelineId === 'global');
+                                  return (
+                                    <div
+                                      key={name}
+                                      className={`absolute rounded-md border flex flex-col justify-center gap-1.5 p-2
+                                        ${svc ? (svc.status === 'degraded' ? 'bg-status-critical/10 border-status-critical/50 shadow-[0_0_15px_rgba(255,0,0,0.15)]' :
+                                          svc.status === 'lagging' ? 'bg-status-warning/10 border-status-warning/50' :
+                                            'bg-card border-border shadow-sm') : 'bg-surface-1/30 border-dashed border-border/50 opacity-60'} z-10 transition-colors hover:border-primary/50`}
+                                      style={{ left: x, top: y, width: 150, height: 60 }}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        {svc ? <StatusDot status={svc.status} pulse /> : <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />}
+                                        <span className="font-mono text-[11px] font-bold truncate text-foreground" title={name}>{name}</span>
+                                      </div>
+                                      {svc && (
+                                        <div className="flex items-center justify-between text-[9px] text-muted-foreground font-mono">
+                                          <span>{svc.replicas} pods</span>
+                                          <span className="text-secondary">GLOBAL</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                };
+
+                                return (
+                                  <>
+                                    {renderGlobalNode('metronitor', 40, 460)}
+                                    {renderGlobalNode('pipeline-creator', 210, 460)}
+                                    {renderGlobalNode('metro-metrics', 380, 460)}
+                                  </>
+                                );
+                              })()}
+                            </>
+                          );
+                        })()}
+                      </div>
                     </div>
                   </div>
                 </TabsContent>
@@ -378,75 +607,6 @@ export default function PipelinesPage() {
                 </TabsContent>
 
                 <TabsContent value="workloads" className="space-y-6">
-                  {/* Pipeline Level Resource Allocation */}
-                  <div className="rounded-lg border border-border bg-card p-5 space-y-6">
-                    <div className="flex items-center gap-2 border-b border-border pb-3">
-                      <Settings2 className="w-4 h-4 text-primary" />
-                      <h3 className="text-sm font-semibold">Global Pipeline Resources</h3>
-                      <Badge variant="secondary" className="ml-auto text-[10px] uppercase font-mono tracking-wide bg-surface-2 text-muted-foreground border-none">
-                        Auto-Distributed
-                      </Badge>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-8">
-                      {/* Pipeline CPU */}
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Total CPU Allocation</label>
-                          <div className="flex items-center gap-2">
-                            <Input
-                              type="number"
-                              value={selected.totalCpuLimit}
-                              onChange={(e) => updatePipelineResources(selected.id, Number(e.target.value) || 0, selected.totalMemoryLimit)}
-                              className="h-7 w-20 text-xs font-mono px-2"
-                            />
-                            <span className="text-[10px] text-muted-foreground font-mono">m</span>
-                          </div>
-                        </div>
-                        <Slider
-                          value={[selected.totalCpuLimit]}
-                          min={1000}
-                          max={32000}
-                          step={500}
-                          onValueChange={([v]) => updatePipelineResources(selected.id, v, selected.totalMemoryLimit)}
-                          className="w-full"
-                        />
-                        <div className="text-[10px] text-muted-foreground font-mono flex justify-between">
-                          <span>1000m</span>
-                          <span>32000m</span>
-                        </div>
-                      </div>
-
-                      {/* Pipeline Memory */}
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Total Memory Allocation</label>
-                          <div className="flex items-center gap-2">
-                            <Input
-                              type="number"
-                              value={selected.totalMemoryLimit}
-                              onChange={(e) => updatePipelineResources(selected.id, selected.totalCpuLimit, Number(e.target.value) || 0)}
-                              className="h-7 w-20 text-xs font-mono px-2"
-                            />
-                            <span className="text-[10px] text-muted-foreground font-mono">Mi</span>
-                          </div>
-                        </div>
-                        <Slider
-                          value={[selected.totalMemoryLimit]}
-                          min={1024}
-                          max={65536}
-                          step={1024}
-                          onValueChange={([v]) => updatePipelineResources(selected.id, selected.totalCpuLimit, v)}
-                          className="w-full"
-                        />
-                        <div className="text-[10px] text-muted-foreground font-mono flex justify-between">
-                          <span>1024Mi</span>
-                          <span>65536Mi</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Individual Services */}
                   <div className="grid md:grid-cols-2 gap-4">
                     {pipelineServices.map(svc => (
@@ -475,7 +635,11 @@ export default function PipelinesPage() {
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Active Pods</label>
-                            <span className="font-mono text-[10px] text-muted-foreground px-1.5 py-0.5 rounded bg-surface-1">{svc.replicas} / 16</span>
+                            <div className="flex items-center gap-2">
+                              <Button variant="outline" size="icon" className="h-5 w-5 rounded min-w-[20px] p-0 flex items-center justify-center" onClick={() => updateService(svc.id, { replicas: Math.max(0, svc.replicas - 1) })}>-</Button>
+                              <span className="font-mono text-[10px] text-muted-foreground px-1.5 py-0.5 rounded bg-surface-1 min-w-[40px] text-center">{svc.replicas} / 16</span>
+                              <Button variant="outline" size="icon" className="h-5 w-5 rounded min-w-[20px] p-0 flex items-center justify-center" onClick={() => updateService(svc.id, { replicas: Math.min(16, svc.replicas + 1) })}>+</Button>
+                            </div>
                           </div>
                           <div className="flex flex-wrap gap-1.5 p-2 rounded bg-surface-1/50 border border-border min-h-[36px]">
                             {Array.from({ length: svc.replicas }).map((_, i) => (
@@ -493,14 +657,44 @@ export default function PipelinesPage() {
                           />
                         </div>
 
-                        {/* Readonly CPU/Mem distribution view */}
-                        <div className="flex items-center justify-between pt-2 border-t border-border mt-4">
-                          <div className="text-[10px] font-mono text-muted-foreground group relative cursor-help">
-                            Current Limit: <span className="text-foreground">{svc.cpuLimit}m</span> CPU / <span className="text-foreground">{svc.memoryLimit}Mi</span> Mem
-                            <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-48 p-2 bg-popover text-popover-foreground text-[10px] rounded border border-border">
-                              These resources are automatically managed by the parent pipeline's global allocation.
+                        {/* CPU Limit */}
+                        <div className="space-y-2 mt-4 pt-4 border-t border-border">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">CPU Limit</label>
+                            <div className="flex items-center gap-2">
+                              <Button variant="outline" size="icon" className="h-5 w-5 rounded min-w-[20px] p-0 flex items-center justify-center" onClick={() => updateService(svc.id, { cpuLimit: Math.max(100, svc.cpuLimit - 100) })}>-</Button>
+                              <span className="font-mono text-[10px] text-muted-foreground px-1.5 py-0.5 rounded bg-surface-1 min-w-[50px] text-center">{svc.cpuLimit}m</span>
+                              <Button variant="outline" size="icon" className="h-5 w-5 rounded min-w-[20px] p-0 flex items-center justify-center" onClick={() => updateService(svc.id, { cpuLimit: Math.min(4000, svc.cpuLimit + 100) })}>+</Button>
                             </div>
                           </div>
+                          <Slider
+                            value={[svc.cpuLimit]}
+                            min={100}
+                            max={4000}
+                            step={100}
+                            onValueChange={([v]) => updateService(svc.id, { cpuLimit: v })}
+                            className="w-full pt-1"
+                          />
+                        </div>
+
+                        {/* Memory Limit */}
+                        <div className="space-y-2 mt-4 pt-4 border-t border-border">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Memory Limit</label>
+                            <div className="flex items-center gap-2">
+                              <Button variant="outline" size="icon" className="h-5 w-5 rounded min-w-[20px] p-0 flex items-center justify-center" onClick={() => updateService(svc.id, { memoryLimit: Math.max(128, svc.memoryLimit - 128) })}>-</Button>
+                              <span className="font-mono text-[10px] text-muted-foreground px-1.5 py-0.5 rounded bg-surface-1 min-w-[50px] text-center">{svc.memoryLimit}Mi</span>
+                              <Button variant="outline" size="icon" className="h-5 w-5 rounded min-w-[20px] p-0 flex items-center justify-center" onClick={() => updateService(svc.id, { memoryLimit: Math.min(8192, svc.memoryLimit + 128) })}>+</Button>
+                            </div>
+                          </div>
+                          <Slider
+                            value={[svc.memoryLimit]}
+                            min={128}
+                            max={8192}
+                            step={128}
+                            onValueChange={([v]) => updateService(svc.id, { memoryLimit: v })}
+                            className="w-full pt-1"
+                          />
                         </div>
 
                       </div>

@@ -32,7 +32,6 @@ export function AppHeader() {
 
       <div className="flex items-center gap-4">
 
-
         <Select value={envFilter} onValueChange={(v) => setEnvFilter(v as typeof envFilter)}>
           <SelectTrigger className="h-8 w-24 text-xs bg-surface-1">
             <SelectValue />
