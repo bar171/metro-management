@@ -1,8 +1,9 @@
-import type { Axis, Customer, Service, ResourceProfile, MetricSnapshot, LogEntry } from '@/types';
+import type { Pipeline, Service, ResourceProfile, MetricSnapshot, LogEntry, Group } from '@/types';
 
-const axisNames = ['Metro-pipeline', 'Rokak', 'Agamim', 'Logamrar', 'Navy'];
-const customerNames = ['Acme Corp', 'Globex Industries', 'Initech', 'Umbrella Inc', 'Cyberdyne Systems', 'Stark Industries', 'Wayne Enterprises', 'Oscorp', 'LexCorp', 'Aperture Science', 'Massive Dynamic', 'Soylent Corp'];
-const serviceNames = ['ingestor', 'transformer', 'enricher', 'validator', 'router', 'aggregator', 'publisher', 'archiver'];
+const pipelineNames = ['Metro-pipeline', 'Rokak', 'Agamim', 'Logamrar', 'Navy', 'Horizon', 'Backfill'];
+
+const serviceNames = ['push-data', 'kafka-consumer', 'scheduler', 'get-data', 'validation', 'python-validate', 'transform-data', 'external-transform', 'publish'];
+const groupNames = ['Jellyfish', 'Cargo', 'apps-of-the-lake', 'rokak', 'control', 'dot', 'fire-team', 'forceverse'];
 const logMessages: Record<string, string[]> = {
   critical: [
     'OOMKilled: Container exceeded memory limit',
@@ -41,89 +42,105 @@ export function generateResourceProfiles(): ResourceProfile[] {
   ];
 }
 
-export function generateAxes(): Axis[] {
-  return axisNames.map((name, i) => ({
-    id: `axis-${i + 1}`,
-    name: name,
-    environment: i < 3 ? 'prod' as const : 'dev' as const,
-    priority: i === 0 ? 'critical' as const : i < 3 ? 'high' as const : 'normal' as const,
-    kafkaCluster: `kafka-cluster-${(i % 3) + 1}`,
-    databaseInstance: `pg-instance-${(i % 2) + 1}`,
-    resourceProfileId: `rp-${(i % 4) + 1}`,
-  }));
+export function generatePipelines(): Pipeline[] {
+  return pipelineNames.map((name, i) => {
+    let type: Pipeline['type'] = 'BASIC';
+    if (i === 1) type = 'STREAM';
+    if (i === 6) type = 'BACKFILL';
+
+    return {
+      id: `pipeline-${i + 1}`,
+      name: name,
+      type,
+      environment: i < 3 ? 'prod' as const : 'dev' as const,
+      priority: i === 0 ? 'critical' as const : i < 3 ? 'high' as const : 'normal' as const,
+      kafkaCluster: `kafka-cluster-${(i % 3) + 1}`,
+      databaseInstance: `pg-instance-${(i % 2) + 1}`,
+      resourceProfileId: `rp-${(i % 4) + 1}`,
+      lastMessageAt: new Date(Date.now() - Math.floor(Math.random() * 600000)).toISOString(),
+      totalCpuLimit: 2000 + Math.floor(Math.random() * 4) * 1000,
+      totalMemoryLimit: 4096 + Math.floor(Math.random() * 4) * 1024
+    };
+  });
 }
 
-export function generateCustomers(axes: Axis[]): Customer[] {
-  return customerNames.map((name, i) => ({
-    id: `cust-${i + 1}`,
+
+
+export function generateGroups(pipelines: Pipeline[]): Group[] {
+  return groupNames.map((name, i) => ({
+    id: `group-${i + 1}`,
     name,
-    dataVolumeLevel: (['low', 'medium', 'high'] as const)[i % 3],
-    streamCriticality: (['standard', 'elevated', 'critical'] as const)[i % 3],
-    axisId: axes[i % axes.length].id,
+    pipelineId: pipelines[i % pipelines.length].id,
+    lastActive: new Date(Date.now() - Math.floor(Math.random() * 86400000)).toISOString()
   }));
 }
 
-export function generateServices(axes: Axis[]): Service[] {
+export function generateServices(pipelines: Pipeline[]): Service[] {
   const services: Service[] = [];
-  axes.forEach(axis => {
-    const count = 3 + Math.floor(Math.random() * 3);
-    for (let i = 0; i < count; i++) {
+  pipelines.forEach(pipeline => {
+    const assignedServices = [...serviceNames];
+
+    assignedServices.forEach(svcName => {
       const statuses: Service['status'][] = ['healthy', 'healthy', 'healthy', 'degraded', 'lagging'];
       services.push({
         id: uid(),
-        name: serviceNames[i % serviceNames.length],
-        axisId: axis.id,
+        name: svcName,
+        pipelineId: pipeline.id,
         replicas: 2 + Math.floor(Math.random() * 4),
-        cpuLimit: `${250 + Math.floor(Math.random() * 4) * 250}m`,
-        memoryLimit: `${256 + Math.floor(Math.random() * 4) * 256}Mi`,
+        cpuLimit: 250 + Math.floor(Math.random() * 4) * 250,
+        memoryLimit: 256 + Math.floor(Math.random() * 4) * 256,
         status: statuses[Math.floor(Math.random() * statuses.length)],
       });
-    }
+    });
   });
   return services;
 }
 
-export function generateMetrics(axes: Axis[]): MetricSnapshot[] {
+export function generateMetrics(pipelines: Pipeline[], services: Service[]): MetricSnapshot[] {
   const metrics: MetricSnapshot[] = [];
   const types: MetricSnapshot['type'][] = ['kafka_lag', 'throughput', 'cpu_usage', 'memory_usage', 'db_connections', 'error_rate'];
   const now = Date.now();
-  axes.forEach(axis => {
-    types.forEach(type => {
-      for (let i = 0; i < 20; i++) {
-        let value: number;
-        switch (type) {
-          case 'kafka_lag': value = Math.floor(Math.random() * 15000); break;
-          case 'throughput': value = 500 + Math.floor(Math.random() * 4500); break;
-          case 'cpu_usage': value = 20 + Math.floor(Math.random() * 70); break;
-          case 'memory_usage': value = 30 + Math.floor(Math.random() * 60); break;
-          case 'db_connections': value = 10 + Math.floor(Math.random() * 90); break;
-          case 'error_rate': value = Math.random() * 5; break;
+  pipelines.forEach(pipeline => {
+    const pipeServices = services.filter(s => s.pipelineId === pipeline.id);
+    pipeServices.forEach(svc => {
+      types.forEach(type => {
+        for (let i = 0; i < 20; i++) {
+          let value: number;
+          switch (type) {
+            case 'kafka_lag': value = Math.floor(Math.random() * 15000); break;
+            case 'throughput': value = 500 + Math.floor(Math.random() * 4500); break;
+            case 'cpu_usage': value = 20 + Math.floor(Math.random() * 70); break;
+            case 'memory_usage': value = 30 + Math.floor(Math.random() * 60); break;
+            case 'db_connections': value = 10 + Math.floor(Math.random() * 90); break;
+            case 'error_rate': value = Math.random() * 5; break;
+          }
+          metrics.push({
+            id: uid(),
+            pipelineId: pipeline.id,
+            serviceId: svc.id,
+            type,
+            value: Math.round(value * 100) / 100,
+            timestamp: new Date(now - (19 - i) * 15000).toISOString(),
+          });
         }
-        metrics.push({
-          id: uid(),
-          axisId: axis.id,
-          type,
-          value: Math.round(value * 100) / 100,
-          timestamp: new Date(now - (19 - i) * 15000).toISOString(),
-        });
-      }
+      });
     });
   });
   return metrics;
 }
 
-export function generateLogs(axes: Axis[], services: Service[]): LogEntry[] {
+export function generateLogs(pipelines: Pipeline[], services: Service[]): LogEntry[] {
   const logs: LogEntry[] = [];
   const now = Date.now();
   for (let i = 0; i < 80; i++) {
     const severity = (['info', 'info', 'info', 'warning', 'warning', 'critical'] as const)[Math.floor(Math.random() * 6)];
-    const axis = axes[Math.floor(Math.random() * axes.length)];
-    const axisServices = services.filter(s => s.axisId === axis.id);
-    const service = axisServices[Math.floor(Math.random() * axisServices.length)];
+    const pipeline = pipelines[Math.floor(Math.random() * pipelines.length)];
+    const pipelineServices = services.filter(s => s.pipelineId === pipeline.id);
+    const service = pipelineServices[Math.floor(Math.random() * pipelineServices.length)];
     const msgs = logMessages[severity];
     logs.push({
       id: uid(),
-      axisId: axis.id,
+      pipelineId: pipeline.id,
       serviceId: service?.id ?? '',
       severity,
       message: msgs[Math.floor(Math.random() * msgs.length)],

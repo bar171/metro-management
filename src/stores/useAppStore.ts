@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import type { Axis, Customer, Service, ResourceProfile, MetricSnapshot, LogEntry, ThemeMode } from '@/types';
-import { axisOrm, customerOrm, serviceOrm, resourceProfileOrm, metricOrm, logOrm } from '@/lib/mockOrm';
+import type { Pipeline, Service, ResourceProfile, MetricSnapshot, LogEntry, ThemeMode, Group } from '@/types';
+import { pipelineOrm, serviceOrm, resourceProfileOrm, metricOrm, logOrm, groupOrm } from '@/lib/mockOrm';
 
 interface AppState {
   // Theme
@@ -12,8 +12,9 @@ interface AppState {
   setEnvFilter: (e: 'all' | 'prod' | 'dev') => void;
 
   // Data
-  axes: Axis[];
-  customers: Customer[];
+  pipelines: Pipeline[];
+
+  groups: Group[];
   services: Service[];
   resourceProfiles: ResourceProfile[];
   metrics: MetricSnapshot[];
@@ -21,16 +22,22 @@ interface AppState {
   loading: boolean;
 
   // Selected
-  selectedAxisId: string | null;
-  setSelectedAxisId: (id: string | null) => void;
+  selectedPipelineId: string | null;
+  setSelectedPipelineId: (id: string | null) => void;
 
   // Actions
   loadAll: () => Promise<void>;
   refreshMetrics: () => Promise<void>;
   refreshLogs: () => Promise<void>;
   updateService: (id: string, data: Partial<Service>) => Promise<void>;
-  updateAxis: (id: string, data: Partial<Axis>) => Promise<void>;
-  updateCustomer: (id: string, data: Partial<Customer>) => Promise<void>;
+  createPipeline: (data: Omit<Pipeline, 'id'>) => Promise<void>;
+  updatePipeline: (id: string, data: Partial<Pipeline>) => Promise<void>;
+  updatePipelineResources: (id: string, totalCpu: number, totalMem: number) => Promise<void>;
+  deletePipeline: (id: string) => Promise<void>;
+  createGroup: (data: Omit<Group, 'id' | 'lastActive'>) => Promise<void>;
+  updateGroup: (id: string, data: Partial<Group>) => Promise<void>;
+  deleteGroup: (id: string) => Promise<void>;
+
   appendMetric: (data: Omit<MetricSnapshot, 'id'>) => Promise<void>;
   appendLog: (data: Omit<LogEntry, 'id'>) => Promise<void>;
 }
@@ -45,28 +52,30 @@ export const useAppStore = create<AppState>((set, get) => ({
   envFilter: 'all',
   setEnvFilter: (envFilter) => set({ envFilter }),
 
-  axes: [],
-  customers: [],
+  pipelines: [],
+
+  groups: [],
   services: [],
   resourceProfiles: [],
   metrics: [],
   logs: [],
   loading: true,
 
-  selectedAxisId: null,
-  setSelectedAxisId: (selectedAxisId) => set({ selectedAxisId }),
+  selectedPipelineId: null,
+  setSelectedPipelineId: (selectedPipelineId) => set({ selectedPipelineId }),
 
   loadAll: async () => {
     set({ loading: true });
-    const [axes, customers, services, resourceProfiles, metrics, logs] = await Promise.all([
-      axisOrm.findMany(),
-      customerOrm.findMany(),
+    const [pipelines, groups, services, resourceProfiles, metrics, logs] = await Promise.all([
+      pipelineOrm.findMany(),
+
+      groupOrm.findMany(),
       serviceOrm.findMany(),
       resourceProfileOrm.findMany(),
       metricOrm.findMany(),
       logOrm.findMany({ limit: 100 }),
     ]);
-    set({ axes, customers, services, resourceProfiles, metrics, logs, loading: false });
+    set({ pipelines, groups, services, resourceProfiles, metrics, logs, loading: false });
   },
 
   refreshMetrics: async () => {
@@ -85,17 +94,73 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ services });
   },
 
-  updateAxis: async (id, data) => {
-    await axisOrm.update(id, data);
-    const axes = await axisOrm.findMany();
-    set({ axes });
+  createPipeline: async (data) => {
+    await pipelineOrm.create(data);
+    const pipelines = await pipelineOrm.findMany();
+    set({ pipelines });
   },
 
-  updateCustomer: async (id, data) => {
-    await customerOrm.update(id, data);
-    const customers = await customerOrm.findMany();
-    set({ customers });
+  updatePipeline: async (id, data) => {
+    await pipelineOrm.update(id, data);
+    const pipelines = await pipelineOrm.findMany();
+    set({ pipelines });
   },
+
+  updatePipelineResources: async (id, totalCpu, totalMem) => {
+    // Update the pipeline's tracked total
+    await pipelineOrm.update(id, { totalCpuLimit: totalCpu, totalMemoryLimit: totalMem });
+
+    // Find all services for this pipeline
+    const svcs = await serviceOrm.findMany({ pipelineId: id });
+    const count = svcs.length;
+    if (count > 0) {
+      // Option A: Distribute equally
+      const cpuPerSvc = Math.floor(totalCpu / count);
+      const memPerSvc = Math.floor(totalMem / count);
+
+      // Update each service in mock DB
+      for (const svc of svcs) {
+        await serviceOrm.update(svc.id, { cpuLimit: cpuPerSvc, memoryLimit: memPerSvc });
+      }
+    }
+
+    // Refresh state
+    const [pipelines, services] = await Promise.all([
+      pipelineOrm.findMany(),
+      serviceOrm.findMany()
+    ]);
+    set({ pipelines, services });
+  },
+
+  deletePipeline: async (id) => {
+    await pipelineOrm.delete(id);
+    const [pipelines, groups, services] = await Promise.all([
+      pipelineOrm.findMany(),
+      groupOrm.findMany(),
+      serviceOrm.findMany()
+    ]);
+    set({ pipelines, groups, services, selectedPipelineId: null });
+  },
+
+  createGroup: async (data) => {
+    await groupOrm.create(data);
+    const groups = await groupOrm.findMany();
+    set({ groups });
+  },
+
+  updateGroup: async (id, data) => {
+    await groupOrm.update(id, data);
+    const groups = await groupOrm.findMany();
+    set({ groups });
+  },
+
+  deleteGroup: async (id) => {
+    await groupOrm.delete(id);
+    const groups = await groupOrm.findMany();
+    set({ groups });
+  },
+
+
 
   appendMetric: async (data) => {
     await metricOrm.append(data);

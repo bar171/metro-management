@@ -5,6 +5,8 @@ import {
   BarChart3,
   Server,
   ScrollText,
+  HeartPulse,
+  Wrench,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
@@ -23,10 +25,12 @@ import {
 
 const navItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
+  { title: 'Liveness (Live)', url: '/liveness', icon: HeartPulse },
   { title: 'Pipelines', url: '/pipelines', icon: GitBranch },
-  { title: 'Customers', url: '/customers', icon: Users },
+
   { title: 'Metrics', url: '/metrics', icon: BarChart3 },
   { title: 'Resources', url: '/resources', icon: Server },
+  { title: 'Pipeline Creator', url: '/pipeline-creator', icon: Wrench },
   { title: 'Logs', url: '/logs', icon: ScrollText },
 ];
 

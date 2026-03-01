@@ -7,18 +7,18 @@ import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LogsPage() {
-  const { axes, services, logs } = useAppStore();
-  const [axisFilter, setAxisFilter] = useState('all');
+  const { pipelines, services, logs } = useAppStore();
+  const [pipelineFilter, setPipelineFilter] = useState('all');
   const [severityFilter, setSeverityFilter] = useState('all');
   const [autoScroll, setAutoScroll] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const filteredLogs = useMemo(() => {
     let result = logs;
-    if (axisFilter !== 'all') result = result.filter(l => l.axisId === axisFilter);
+    if (pipelineFilter !== 'all') result = result.filter(l => l.pipelineId === pipelineFilter);
     if (severityFilter !== 'all') result = result.filter(l => l.severity === severityFilter);
     return result;
-  }, [logs, axisFilter, severityFilter]);
+  }, [logs, pipelineFilter, severityFilter]);
 
   useEffect(() => {
     if (autoScroll && scrollRef.current) {
@@ -26,7 +26,7 @@ export default function LogsPage() {
     }
   }, [filteredLogs, autoScroll]);
 
-  const getAxisName = (id: string) => axes.find(a => a.id === id)?.name ?? 'Unknown';
+  const getPipelineName = (id: string) => pipelines.find(a => a.id === id)?.name ?? 'Unknown';
   const getServiceName = (id: string) => services.find(s => s.id === id)?.name ?? '—';
 
   return (
@@ -52,13 +52,13 @@ export default function LogsPage() {
               <SelectItem value="info">Info</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={axisFilter} onValueChange={setAxisFilter}>
+          <Select value={pipelineFilter} onValueChange={setPipelineFilter}>
             <SelectTrigger className="h-8 w-36 text-xs bg-surface-1">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Pipelines</SelectItem>
-              {axes.map(a => (
+              {pipelines.map(a => (
                 <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
               ))}
             </SelectContent>
@@ -83,7 +83,7 @@ export default function LogsPage() {
                 {new Date(log.timestamp).toLocaleTimeString()}
               </span>
               <SeverityBadge severity={log.severity} />
-              <span className="text-muted-foreground w-24 shrink-0 truncate">{getAxisName(log.axisId)}</span>
+              <span className="text-muted-foreground w-24 shrink-0 truncate">{getPipelineName(log.pipelineId)}</span>
               <span className="text-muted-foreground w-20 shrink-0">{getServiceName(log.serviceId)}</span>
               <span className="flex-1 leading-relaxed">{log.message}</span>
             </motion.div>

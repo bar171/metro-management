@@ -1,8 +1,9 @@
-import type { Axis, Customer, Service, ResourceProfile, MetricSnapshot, LogEntry } from '@/types';
+import type { Pipeline, Service, ResourceProfile, MetricSnapshot, LogEntry, Group } from '@/types';
 import {
   generateResourceProfiles,
-  generateAxes,
-  generateCustomers,
+  generatePipelines,
+
+  generateGroups,
   generateServices,
   generateMetrics,
   generateLogs,
@@ -13,11 +14,46 @@ const delay = (ms = 80) => new Promise(r => setTimeout(r, ms + Math.random() * 6
 
 // In-memory DB
 let resourceProfiles = generateResourceProfiles();
-let axes = generateAxes();
-let customers = generateCustomers(axes);
-let services = generateServices(axes);
-let metrics = generateMetrics(axes);
-let logs = generateLogs(axes, services);
+let pipelines = generatePipelines();
+
+let groups = generateGroups(pipelines);
+let services = generateServices(pipelines);
+let metrics = generateMetrics(pipelines, services);
+let logs = generateLogs(pipelines, services);
+
+// ── Background Simulation ──
+setInterval(() => {
+  // 1. Randomly flip a service status to "down" (degraded/lagging)
+  if (Math.random() < 0.1 && services.length > 0) {
+    const svc = services[Math.floor(Math.random() * services.length)];
+    svc.status = Math.random() < 0.5 ? 'degraded' : 'lagging';
+    // self-heal after some time
+    setTimeout(() => { svc.status = 'healthy'; }, 15000 + Math.random() * 30000);
+  }
+
+  // 2. Update lastMessageAt for active pipelines
+  pipelines.forEach(p => {
+    if (Math.random() < 0.3) {
+      p.lastMessageAt = new Date().toISOString();
+    }
+  });
+
+  // 3. Simulate Kafka lag spikes
+  if (Math.random() < 0.2) {
+    const p = pipelines[Math.floor(Math.random() * pipelines.length)];
+    const pServices = services.filter(s => s.pipelineId === p.id);
+    const svc = pServices[Math.floor(Math.random() * pServices.length)];
+    if (svc) {
+      metricOrm.append({
+        pipelineId: p.id,
+        serviceId: svc.id,
+        type: 'kafka_lag',
+        value: 1200 + Math.random() * 5000,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+}, 5000);
 
 // ── Resource Profiles ──
 export const resourceProfileOrm = {
@@ -36,74 +72,75 @@ export const resourceProfileOrm = {
   },
 };
 
-// ── Axes ──
-export const axisOrm = {
-  async findMany(filter?: { environment?: string }): Promise<Axis[]> {
+// ── Pipelines ──
+export const pipelineOrm = {
+  async findMany(filter?: { environment?: string }): Promise<Pipeline[]> {
     await delay();
-    let result = [...axes];
+    let result = [...pipelines];
     if (filter?.environment) result = result.filter(a => a.environment === filter.environment);
     return result;
   },
-  async findById(id: string): Promise<Axis | undefined> {
+  async findById(id: string): Promise<Pipeline | undefined> {
     await delay();
-    return axes.find(a => a.id === id);
+    return pipelines.find(a => a.id === id);
   },
-  async create(data: Omit<Axis, 'id'>): Promise<Axis> {
+  async create(data: Omit<Pipeline, 'id'>): Promise<Pipeline> {
     await delay(150);
-    const axis: Axis = { ...data, id: `axis-${Date.now()}` };
-    axes.push(axis);
-    return axis;
+    const pipeline: Pipeline = { ...data, id: `pipeline-${Date.now()}` };
+    pipelines.push(pipeline);
+    return pipeline;
   },
-  async update(id: string, data: Partial<Axis>): Promise<Axis> {
+  async update(id: string, data: Partial<Pipeline>): Promise<Pipeline> {
     await delay(120);
-    axes = axes.map(a => a.id === id ? { ...a, ...data } : a);
-    return axes.find(a => a.id === id)!;
+    pipelines = pipelines.map(a => a.id === id ? { ...a, ...data } : a);
+    return pipelines.find(a => a.id === id)!;
   },
   async delete(id: string): Promise<void> {
     await delay(100);
-    // Cascade: unlink customers
-    customers = customers.map(c => c.axisId === id ? { ...c, axisId: '' } : c);
+
     // Cascade: remove services
-    services = services.filter(s => s.axisId !== id);
-    axes = axes.filter(a => a.id !== id);
+    services = services.filter(s => s.pipelineId !== id);
+    pipelines = pipelines.filter(a => a.id !== id);
   },
 };
 
-// ── Customers ──
-export const customerOrm = {
-  async findMany(filter?: { axisId?: string }): Promise<Customer[]> {
+
+
+// ── Groups ──
+export const groupOrm = {
+  async findMany(filter?: { pipelineId?: string }): Promise<Group[]> {
     await delay();
-    let result = [...customers];
-    if (filter?.axisId) result = result.filter(c => c.axisId === filter.axisId);
+    let result = [...groups];
+    if (filter?.pipelineId) result = result.filter(g => g.pipelineId === filter.pipelineId);
     return result;
   },
-  async findById(id: string): Promise<Customer | undefined> {
+  async findById(id: string): Promise<Group | undefined> {
     await delay();
-    return customers.find(c => c.id === id);
+    return groups.find(g => g.id === id);
   },
-  async update(id: string, data: Partial<Customer>): Promise<Customer> {
-    await delay(120);
-    customers = customers.map(c => c.id === id ? { ...c, ...data } : c);
-    return customers.find(c => c.id === id)!;
-  },
-  async create(data: Omit<Customer, 'id'>): Promise<Customer> {
+  async create(data: Omit<Group, 'id' | 'lastActive'>): Promise<Group> {
     await delay(150);
-    const customer: Customer = { ...data, id: `cust-${Date.now()}` };
-    customers.push(customer);
-    return customer;
+    const group: Group = { ...data, id: `group-${Date.now()}`, lastActive: new Date().toISOString() };
+    groups.push(group);
+    return group;
+  },
+  async update(id: string, data: Partial<Group>): Promise<Group> {
+    await delay(120);
+    groups = groups.map(g => g.id === id ? { ...g, ...data } : g);
+    return groups.find(g => g.id === id)!;
   },
   async delete(id: string): Promise<void> {
     await delay(100);
-    customers = customers.filter(c => c.id !== id);
-  },
+    groups = groups.filter(g => g.id !== id);
+  }
 };
 
 // ── Services ──
 export const serviceOrm = {
-  async findMany(filter?: { axisId?: string }): Promise<Service[]> {
+  async findMany(filter?: { pipelineId?: string }): Promise<Service[]> {
     await delay();
     let result = [...services];
-    if (filter?.axisId) result = result.filter(s => s.axisId === filter.axisId);
+    if (filter?.pipelineId) result = result.filter(s => s.pipelineId === filter.pipelineId);
     return result;
   },
   async findById(id: string): Promise<Service | undefined> {
@@ -129,19 +166,19 @@ export const serviceOrm = {
 
 // ── Metrics ──
 export const metricOrm = {
-  async findMany(filter?: { axisId?: string; type?: string }): Promise<MetricSnapshot[]> {
+  async findMany(filter?: { pipelineId?: string; type?: string }): Promise<MetricSnapshot[]> {
     await delay();
     let result = [...metrics];
-    if (filter?.axisId) result = result.filter(m => m.axisId === filter.axisId);
+    if (filter?.pipelineId) result = result.filter(m => m.pipelineId === filter.pipelineId);
     if (filter?.type) result = result.filter(m => m.type === filter.type);
     return result;
   },
   async append(data: Omit<MetricSnapshot, 'id'>): Promise<MetricSnapshot> {
     const metric: MetricSnapshot = { ...data, id: `m-${Date.now()}-${Math.random().toString(36).slice(2, 6)}` };
     metrics.push(metric);
-    // Keep only last 200 per axis/type
-    const key = `${metric.axisId}_${metric.type}`;
-    const grouped = metrics.filter(m => `${m.axisId}_${m.type}` === key);
+    // Keep only last 200 per pipeline/type
+    const key = `${metric.pipelineId}_${metric.serviceId}_${metric.type}`;
+    const grouped = metrics.filter(m => `${m.pipelineId}_${m.serviceId}_${m.type}` === key);
     if (grouped.length > 200) {
       const toRemove = new Set(grouped.slice(0, grouped.length - 200).map(m => m.id));
       metrics = metrics.filter(m => !toRemove.has(m.id));
@@ -152,10 +189,10 @@ export const metricOrm = {
 
 // ── Logs ──
 export const logOrm = {
-  async findMany(filter?: { axisId?: string; serviceId?: string; severity?: string; limit?: number }): Promise<LogEntry[]> {
+  async findMany(filter?: { pipelineId?: string; serviceId?: string; severity?: string; limit?: number }): Promise<LogEntry[]> {
     await delay();
     let result = [...logs];
-    if (filter?.axisId) result = result.filter(l => l.axisId === filter.axisId);
+    if (filter?.pipelineId) result = result.filter(l => l.pipelineId === filter.pipelineId);
     if (filter?.serviceId) result = result.filter(l => l.serviceId === filter.serviceId);
     if (filter?.severity) result = result.filter(l => l.severity === filter.severity);
     result.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());

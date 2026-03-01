@@ -13,37 +13,45 @@ export interface ResourceProfile {
   autoscalingEnabled: boolean;
 }
 
-export interface Axis {
+export interface Group {
   id: string;
   name: string;
+  pipelineId: string;
+  lastActive: string;
+}
+
+export type PipelineType = 'BASIC' | 'STREAM' | 'BACKFILL';
+
+export interface Pipeline {
+  id: string;
+  name: string;
+  type: PipelineType;
   environment: Environment;
   priority: Priority;
   kafkaCluster: string;
   databaseInstance: string;
   resourceProfileId: string;
+  lastMessageAt?: string;
+  totalCpuLimit: number;
+  totalMemoryLimit: number;
 }
 
-export interface Customer {
-  id: string;
-  name: string;
-  dataVolumeLevel: 'low' | 'medium' | 'high';
-  streamCriticality: 'standard' | 'elevated' | 'critical';
-  axisId: string;
-}
+
 
 export interface Service {
   id: string;
   name: string;
-  axisId: string;
+  pipelineId: string;
   replicas: number;
-  cpuLimit: string;
-  memoryLimit: string;
+  cpuLimit: number; // storing millicores natively (e.g. 500)
+  memoryLimit: number; // storing MiB natively (e.g. 1024)
   status: ServiceStatus;
 }
 
 export interface MetricSnapshot {
   id: string;
-  axisId: string;
+  pipelineId: string;
+  serviceId: string;
   type: MetricType;
   value: number;
   timestamp: string;
@@ -51,7 +59,7 @@ export interface MetricSnapshot {
 
 export interface LogEntry {
   id: string;
-  axisId: string;
+  pipelineId: string;
   serviceId: string;
   severity: Severity;
   message: string;

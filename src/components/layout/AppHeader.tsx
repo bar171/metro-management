@@ -2,7 +2,8 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useAppStore } from '@/stores/useAppStore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Search, Monitor } from 'lucide-react';
+import { Search, Monitor, Database } from 'lucide-react';
+import { useMemo } from 'react';
 import type { ThemeMode } from '@/types';
 
 const themes: { value: ThemeMode; label: string }[] = [
@@ -23,13 +24,15 @@ export function AppHeader() {
         <div className="relative max-w-xs flex-1">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
-            placeholder="Search pipelines, customers..."
+            placeholder="Search pipelines, owner groups..."
             className="h-8 pl-8 text-xs bg-surface-1 border-border"
           />
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4">
+
+
         <Select value={envFilter} onValueChange={(v) => setEnvFilter(v as typeof envFilter)}>
           <SelectTrigger className="h-8 w-24 text-xs bg-surface-1">
             <SelectValue />

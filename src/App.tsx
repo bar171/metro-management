@@ -6,9 +6,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import PipelinesPage from "./pages/PipelinesPage";
-import CustomersPage from "./pages/CustomersPage";
+
 import MetricsPage from "./pages/MetricsPage";
 import ResourcesPage from "./pages/ResourcesPage";
+import LivenessPage from "./pages/LivenessPage";
+import PipelineCreatorPage from "./pages/PipelineCreatorPage";
 import LogsPage from "./pages/LogsPage";
 import NotFound from "./pages/NotFound";
 
@@ -24,9 +26,11 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/pipelines" element={<PipelinesPage />} />
-            <Route path="/customers" element={<CustomersPage />} />
+            <Route path="/liveness" element={<LivenessPage />} />
+
             <Route path="/metrics" element={<MetricsPage />} />
             <Route path="/resources" element={<ResourcesPage />} />
+            <Route path="/pipeline-creator" element={<PipelineCreatorPage />} />
             <Route path="/logs" element={<LogsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

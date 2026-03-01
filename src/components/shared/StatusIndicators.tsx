@@ -83,3 +83,18 @@ export function EnvBadge({ env }: { env: string }) {
     </span>
   );
 }
+
+export function TypeBadge({ type }: { type: string }) {
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wider border',
+        type === 'BASIC' && 'border-muted text-muted-foreground bg-muted/10',
+        type === 'STREAM' && 'border-blue-500/30 text-blue-500 bg-blue-500/10',
+        type === 'BACKFILL' && 'border-purple-500/30 text-purple-500 bg-purple-500/10',
+      )}
+    >
+      {type}
+    </span>
+  );
+}
