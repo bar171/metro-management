@@ -16,16 +16,19 @@ export interface ResourceProfile {
 export interface Group {
   id: string;
   name: string;
-  pipelineId: string;
+  primaryPipelineId: string;
+  secondaryPipelineIds: string[];
   lastActive: string;
 }
 
 export type PipelineType = 'BASIC' | 'STREAM' | 'BACKFILL';
+export type PipelineRole = 'primary' | 'secondary';
 
 export interface Pipeline {
   id: string;
   name: string;
   type: PipelineType;
+  role: PipelineRole;
   environment: Environment;
   priority: Priority;
   kafkaCluster: string;

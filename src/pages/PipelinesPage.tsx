@@ -75,7 +75,7 @@ export default function PipelinesPage() {
 
   const selected = useMemo(() => pipelines.find(a => a.id === selectedPipelineId), [pipelines, selectedPipelineId]);
   const pipelineServices = useMemo(() => services.filter(s => s.pipelineId === selectedPipelineId), [services, selectedPipelineId]);
-  const pipelineGroups = useMemo(() => groups.filter(g => g.pipelineId === selectedPipelineId), [groups, selectedPipelineId]);
+  const pipelineGroups = useMemo(() => groups.filter(g => g.primaryPipelineId === selectedPipelineId || g.secondaryPipelineIds.includes(selectedPipelineId || '')), [groups, selectedPipelineId]);
 
   const getPipelineHealth = (pipelineId: string): ServiceStatus => {
     const svcs = services.filter(s => s.pipelineId === pipelineId);
@@ -91,6 +91,7 @@ export default function PipelinesPage() {
     await createPipeline({
       name: newPipelineName,
       type: newPipelineType,
+      role: 'primary',
       environment: envFilter === 'all' ? 'dev' : envFilter,
       priority: 'normal',
       kafkaCluster: 'new-cluster',
@@ -119,7 +120,8 @@ export default function PipelinesPage() {
     if (!newGroupName || !selected) return;
     await createGroup({
       name: newGroupName,
-      pipelineId: selected.id
+      primaryPipelineId: selected.id,
+      secondaryPipelineIds: []
     });
     setNewGroupName('');
     setIsCreateGroupOpen(false);
@@ -127,9 +129,20 @@ export default function PipelinesPage() {
   };
 
   const handleMoveGroup = async (groupId: string, newPipelineId: string) => {
-    await updateGroup(groupId, { pipelineId: newPipelineId });
+    await updateGroup(groupId, { primaryPipelineId: newPipelineId });
     toast.success('Group moved to another pipeline');
   };
+
+  const handleToggleSecondary = async (groupId: string, secondaryPipelineId: string, currentSecondaries: string[]) => {
+    const newSecondaries = currentSecondaries.includes(secondaryPipelineId)
+      ? currentSecondaries.filter(id => id !== secondaryPipelineId)
+      : [...currentSecondaries, secondaryPipelineId];
+    await updateGroup(groupId, { secondaryPipelineIds: newSecondaries });
+    toast.success('Secondary pipelines updated');
+  };
+
+  const primaryPipelines = useMemo(() => pipelines.filter(p => p.role === 'primary'), [pipelines]);
+  const secondaryPipelines = useMemo(() => pipelines.filter(p => p.role === 'secondary'), [pipelines]);
 
   return (
     <div className="flex h-[calc(100vh-3rem)]">
@@ -184,7 +197,7 @@ export default function PipelinesPage() {
         </div>
         <div className="flex-1 overflow-auto custom-scrollbar">
           {filteredPipelines.map(pipeline => {
-            const groupsForPipe = groups.filter(g => g.pipelineId === pipeline.id);
+            const groupsForPipe = groups.filter(g => g.primaryPipelineId === pipeline.id);
             return (
               <button
                 key={pipeline.id}
@@ -532,32 +545,57 @@ export default function PipelinesPage() {
                   ) : (
                     <div className="grid gap-3">
                       {pipelineGroups.map(group => (
-                        <div key={group.id} className="rounded-lg border border-border bg-card p-4 flex items-center justify-between">
-                          <div>
-                            <div className="font-medium">{group.name}</div>
-                            <div className="text-[10px] text-muted-foreground font-mono mt-1">
-                              Last active: {new Date(group.lastActive).toUTCString()}
+                        <div key={group.id} className="rounded-lg border border-border bg-card p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium">{group.name}</div>
+                              <div className="text-[10px] text-muted-foreground font-mono mt-1">
+                                Last active: {new Date(group.lastActive).toUTCString()}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <Select
+                                value={group.primaryPipelineId}
+                                onValueChange={(newPipeId) => {
+                                  if (newPipeId !== group.primaryPipelineId) {
+                                    handleMoveGroup(group.id, newPipeId);
+                                  }
+                                }}
+                              >
+                                <SelectTrigger className="h-8 w-[180px] text-xs">
+                                  <div className="flex items-center gap-2"><ArrowRightLeft className="w-3 h-3 text-muted-foreground" /> <SelectValue /></div>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {primaryPipelines.map(p => (
+                                    <SelectItem key={p.id} value={p.id} className="text-xs">{p.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </div>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <Select
-                              value={group.pipelineId}
-                              onValueChange={(newPipeId) => {
-                                if (newPipeId !== group.pipelineId) {
-                                  handleMoveGroup(group.id, newPipeId);
-                                }
-                              }}
-                            >
-                              <SelectTrigger className="h-8 w-[180px] text-xs">
-                                <div className="flex items-center gap-2"><ArrowRightLeft className="w-3 h-3 text-muted-foreground" /> <SelectValue /></div>
-                              </SelectTrigger>
-                              <SelectContent>
-                                {pipelines.map(p => (
-                                  <SelectItem key={p.id} value={p.id} className="text-xs">{p.name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
+
+                          {secondaryPipelines.length > 0 && (
+                            <div className="pt-2 border-t border-border">
+                              <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider mb-2">Secondary Pipelines</div>
+                              <div className="flex flex-wrap gap-2">
+                                {secondaryPipelines.map(sp => {
+                                  const isActive = group.secondaryPipelineIds.includes(sp.id);
+                                  return (
+                                    <button
+                                      key={sp.id}
+                                      onClick={() => handleToggleSecondary(group.id, sp.id, group.secondaryPipelineIds)}
+                                      className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${isActive
+                                          ? 'bg-primary/15 border-primary/50 text-primary'
+                                          : 'bg-surface-1 border-border text-muted-foreground hover:border-primary/30'
+                                        }`}
+                                    >
+                                      {sp.name}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

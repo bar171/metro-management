@@ -1,6 +1,6 @@
 import type { Pipeline, Service, ResourceProfile, MetricSnapshot, LogEntry, Group } from '@/types';
 
-const pipelineNames = ['Metro-pipeline', 'Rokak', 'Agamim', 'Logmar', 'Navy', 'Horizon', 'Backfill'];
+const pipelineNames = ['Metro-pipeline', 'Rokak', 'Agamim', 'Logmar', 'Navy', 'Horizon', 'Backfill', 'Excel'];
 
 const serviceNames = [
   'push-data', 'kafka-consumer', 'scheduler',
@@ -48,16 +48,19 @@ export function generateResourceProfiles(): ResourceProfile[] {
 }
 
 export function generatePipelines(): Pipeline[] {
+  const secondaryNames = ['Backfill', 'Excel'];
   return pipelineNames.map((name, i) => {
+    const isSecondary = secondaryNames.includes(name);
     let type: Pipeline['type'] = 'BASIC';
-    if (i === 1) type = 'STREAM';
-    if (i === 6) type = 'BACKFILL';
+    if (name === 'Rokak') type = 'STREAM';
+    if (name === 'Backfill') type = 'BACKFILL';
 
     return {
       id: `pipeline-${i + 1}`,
       name: name,
       type,
-      environment: i === 6 ? 'dev' as const : i === 1 ? 'prep' as const : 'prod' as const,
+      role: isSecondary ? 'secondary' as const : 'primary' as const,
+      environment: name === 'Backfill' ? 'dev' as const : name === 'Rokak' ? 'prep' as const : 'prod' as const,
       priority: i === 0 ? 'critical' as const : i < 3 ? 'high' as const : 'normal' as const,
       kafkaCluster: `kafka-cluster-${(i % 3) + 1}`,
       databaseInstance: `pg-instance-${(i % 2) + 1}`,
@@ -74,10 +77,15 @@ export function generatePipelines(): Pipeline[] {
 
 
 export function generateGroups(pipelines: Pipeline[]): Group[] {
+  const primaryPipelines = pipelines.filter(p => p.role === 'primary');
+  const secondaryPipelines = pipelines.filter(p => p.role === 'secondary');
   return groupNames.map((name, i) => ({
     id: `group-${i + 1}`,
     name,
-    pipelineId: pipelines[i % pipelines.length].id,
+    primaryPipelineId: primaryPipelines[i % primaryPipelines.length].id,
+    secondaryPipelineIds: i % 3 === 0 && secondaryPipelines.length > 0
+      ? [secondaryPipelines[i % secondaryPipelines.length].id]
+      : [],
     lastActive: new Date(Date.now() - Math.floor(Math.random() * 86400000)).toISOString()
   }));
 }

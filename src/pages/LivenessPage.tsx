@@ -62,7 +62,7 @@ export default function LivenessPage() {
         const activePipelines = envFilter === 'all' ? pipelines : pipelines.filter(p => p.environment === envFilter);
         return activePipelines.map(pipeline => {
             const svcs = services.filter(s => s.pipelineId === pipeline.id);
-            const pipeGroups = groups.filter(g => g.pipelineId === pipeline.id);
+            const pipeGroups = groups.filter(g => g.primaryPipelineId === pipeline.id || g.secondaryPipelineIds.includes(pipeline.id));
             const health = getPipelineHealth(pipeline.id);
             const stale = isStale(pipeline.lastMessageAt);
             const lag = getPipelineLag(pipeline.id);

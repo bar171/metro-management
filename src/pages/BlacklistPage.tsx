@@ -262,15 +262,12 @@ const BlacklistPage = () => {
                             </DialogHeader>
                             <div className="space-y-4 py-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Broker Alias / Address</label>
-                                    <Select onValueChange={(v) => setFormData({ ...formData, targetValue: v })}>
-                                        <SelectTrigger><SelectValue placeholder="Select Known Broker" /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="kafka-broker-01.metro.svc:9092">Broker 01 (Primary)</SelectItem>
-                                            <SelectItem value="kafka-broker-02.metro.svc:9092">Broker 02 (Secondary)</SelectItem>
-                                            <SelectItem value="kafka-broker-audit.metro.svc:9092">Audit Cluster Broker</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <label className="text-sm font-medium">Broker Address</label>
+                                    <Input
+                                        placeholder="e.g. kafka-broker-01.metro.svc:9092"
+                                        value={formData.targetValue}
+                                        onChange={(e) => setFormData({ ...formData, targetValue: e.target.value })}
+                                    />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Reason</label>

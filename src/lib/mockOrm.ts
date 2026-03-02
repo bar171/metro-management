@@ -108,10 +108,10 @@ export const pipelineOrm = {
 
 // ── Groups ──
 export const groupOrm = {
-  async findMany(filter?: { pipelineId?: string }): Promise<Group[]> {
+  async findMany(filter?: { primaryPipelineId?: string }): Promise<Group[]> {
     await delay();
     let result = [...groups];
-    if (filter?.pipelineId) result = result.filter(g => g.pipelineId === filter.pipelineId);
+    if (filter?.primaryPipelineId) result = result.filter(g => g.primaryPipelineId === filter.primaryPipelineId);
     return result;
   },
   async findById(id: string): Promise<Group | undefined> {
