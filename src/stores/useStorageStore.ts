@@ -8,7 +8,7 @@ export interface StorageFolder {
     name: string;
     icon: string;
     customIconUrl?: string; // Optional user-uploaded image URL
-    color?: string; // Optional custom color for the folder
+    color?: string; // Optional background/border tint
     environmentId: string;
     parentId?: string | null; // Optional parent folder for nesting
     createdAt: string;
@@ -22,6 +22,7 @@ export interface StorageItem {
     url: string; // URL for links, data/blob URL for simulated files, or external link
     environmentId: string;
     createdAt: string;
+    color?: string; // Optional background/border tint
     description?: string;
     size?: number; // Simulated size for documents/photos
 }

@@ -23,7 +23,7 @@ import {
   SiRedhatopenshift
 } from 'react-icons/si';
 
-const BRAND_ICONS: { id: string; icon?: any; imgUrl?: string; label: string; color?: string }[] = [
+export const BRAND_ICONS: { id: string; icon?: any; imgUrl?: string; label: string; color?: string }[] = [
   { id: 'kafka', icon: SiApachekafka, label: 'Kafka' }, // No color -> inherits text color
   { id: 'postgres', icon: SiPostgresql, label: 'Postgres', color: '#4169E1' },
   { id: 'redis', icon: SiRedis, label: 'Redis', color: '#DC382D' },
@@ -51,6 +51,17 @@ const GENERIC_ICONS = [
   'Globe'
 ] as const;
 
+const COLORS = [
+  { name: 'default', class: 'bg-muted/50 border-input' },
+  { name: 'red', class: 'bg-red-500/20 border-red-500/50 hover:bg-red-500/30 text-red-500' },
+  { name: 'orange', class: 'bg-orange-500/20 border-orange-500/50 hover:bg-orange-500/30 text-orange-500' },
+  { name: 'yellow', class: 'bg-yellow-500/20 border-yellow-500/50 hover:bg-yellow-500/30 text-yellow-500' },
+  { name: 'green', class: 'bg-green-500/20 border-green-500/50 hover:bg-green-500/30 text-green-500' },
+  { name: 'blue', class: 'bg-blue-500/20 border-blue-500/50 hover:bg-blue-500/30 text-blue-500' },
+  { name: 'purple', class: 'bg-purple-500/20 border-purple-500/50 hover:bg-purple-500/30 text-purple-500' },
+  { name: 'pink', class: 'bg-pink-500/20 border-pink-500/50 hover:bg-pink-500/30 text-pink-500' },
+];
+
 interface CreateFolderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -65,19 +76,25 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit, parentId 
   const [name, setName] = useState(folderToEdit?.name || '');
   const [selectedIcon, setSelectedIcon] = useState(folderToEdit?.icon || 'kafka');
   const [customIconUrl, setCustomIconUrl] = useState<string | null>(folderToEdit?.customIconUrl || null);
-  const [folderColor, setFolderColor] = useState(folderToEdit?.color || '');
+  const [selectedColor, setSelectedColor] = useState(folderToEdit?.color || 'default');
 
   useEffect(() => {
     if (open) {
       setName(folderToEdit?.name || '');
       setSelectedIcon(folderToEdit?.icon || 'kafka');
       setCustomIconUrl(folderToEdit?.customIconUrl || null);
-      setFolderColor(folderToEdit?.color || '');
+      setSelectedColor(folderToEdit?.color || 'default');
     }
   }, [open, folderToEdit]);
 
   // Reset form when opening to edit a different folder or creating new
   const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen) {
+      setName(folderToEdit?.name || '');
+      setSelectedIcon(folderToEdit?.icon || 'Folder');
+      setCustomIconUrl(folderToEdit?.customIconUrl || null);
+      setSelectedColor(folderToEdit?.color || 'default');
+    }
     onOpenChange(newOpen);
   };
 
@@ -98,14 +115,14 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit, parentId 
         name,
         icon: selectedIcon,
         customIconUrl: customIconUrl || undefined,
-        color: folderColor || undefined
+        color: selectedColor === 'default' ? undefined : selectedColor
       });
     } else {
       addFolder({
         name,
         icon: selectedIcon,
         customIconUrl: customIconUrl || undefined,
-        color: folderColor || undefined,
+        color: selectedColor === 'default' ? undefined : selectedColor,
         environmentId: currentEnv,
         parentId: parentId || null,
       });
@@ -133,49 +150,18 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit, parentId 
             </div>
 
             <div className="grid gap-2">
-              <Label>Folder Custom Color (Optional)</Label>
-              <div className="flex gap-2">
-                {['', '#3B82F6', '#10B981', '#F59E0B', '#F97316', '#EF4444', '#8B5CF6', '#EC4899', '#64748B'].map(c => (
+              <Label>Color Theme</Label>
+              <div className="flex gap-2 flex-wrap">
+                {COLORS.map((c) => (
                   <button
-                    key={c || 'none'}
+                    key={c.name}
                     type="button"
-                    onClick={() => setFolderColor(c)}
-                    className={`h-6 w-6 rounded-full border-2 ${folderColor === c ? 'border-primary border-[3px]' : 'border-transparent'} ${!c ? 'bg-muted/50 border-input' : ''} transition-all`}
-                    style={c ? { backgroundColor: c } : {}}
-                    title={c || 'Default color'}
+                    onClick={() => setSelectedColor(c.name)}
+                    className={`h-8 w-8 rounded-full border-2 transition-all ${c.class} ${selectedColor === c.name ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : 'opacity-70 hover:opacity-100'
+                      }`}
+                    title={c.name}
                   />
                 ))}
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label>Custom Icon Image</Label>
-              <div className="flex items-center gap-4">
-                {customIconUrl ? (
-                  <div className="relative h-12 w-12 rounded-lg border border-border overflow-hidden bg-muted group">
-                    <img src={customIconUrl} alt="Custom Icon" className="h-full w-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => setCustomIconUrl(null)}
-                      className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <LucideIcons.X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="h-12 w-12 rounded-lg border border-dashed border-muted-foreground/50 flex items-center justify-center bg-muted/20">
-                    <LucideIcons.Image className="h-5 w-5 text-muted-foreground/50" />
-                  </div>
-                )}
-                <div className="flex-1">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="text-xs"
-                  />
-                  <p className="text-[10px] text-muted-foreground mt-1 text-right">Upload a logo or photo</p>
-                </div>
               </div>
             </div>
 
@@ -212,7 +198,34 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit, parentId 
               <Label className="flex justify-between items-center">
                 <span>Or select a generic icon</span>
               </Label>
-              <div className="grid grid-cols-6 gap-2">
+              <div className="grid grid-cols-6 gap-2 max-h-48 overflow-y-auto custom-scrollbar p-1">
+                {/* Custom Image Upload acts as the very first grid item */}
+                <div className="relative group col-span-1 h-10">
+                  {customIconUrl ? (
+                    <div className="h-full w-full rounded-md border border-primary ring-2 ring-primary/20 overflow-hidden bg-muted">
+                      <img src={customIconUrl} alt="Custom Icon" className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setCustomIconUrl(null)}
+                        className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <LucideIcons.X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="h-full w-full rounded-md border border-dashed border-muted-foreground/50 flex flex-col items-center justify-center bg-muted/20 hover:bg-muted/50 cursor-pointer transition-colors px-1 text-center">
+                      <LucideIcons.ImagePlus className="h-4 w-4 text-muted-foreground mb-1" />
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {/* Standard Icons follow immediately after */}
                 {GENERIC_ICONS.map((iconName) => {
                   const Icon = (LucideIcons as any)[iconName];
                   if (!Icon) return null;

@@ -1,31 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStorageStore, StorageFolder, StorageItem } from '@/stores/useStorageStore';
 import { useAppStore } from '@/stores/useAppStore';
 import { Plus, MoreVertical, Trash2, Edit2, Link as LinkIcon, Image as ImageIcon, FileText, ExternalLink } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { CreateFolderDialog } from '@/components/storage/CreateFolderDialog';
+import { CreateFolderDialog, BRAND_ICONS } from '@/components/storage/CreateFolderDialog';
 import { CreateItemDialog } from '@/components/storage/CreateItemDialog';
 import { StorageBreadcrumbs } from '@/components/storage/StorageBreadcrumbs';
-import {
-  SiSplunk, SiGrafana, SiApachekafka, SiPostgresql, SiRedis,
-  SiJira, SiConfluence, SiRedhatopenshift,
-} from 'react-icons/si';
 
-const BRAND_ICONS: { id: string; icon?: any; imgUrl?: string; label: string; color?: string }[] = [
-  { id: 'kafka', icon: SiApachekafka, label: 'Kafka' },
-  { id: 'postgres', icon: SiPostgresql, label: 'Postgres', color: '#4169E1' },
-  { id: 'redis', icon: SiRedis, label: 'Redis', color: '#DC382D' },
-  { id: 'airflow', imgUrl: '/airflow-icon.svg', label: 'Airflow' },
-  { id: 'grafana', icon: SiGrafana, label: 'Grafana', color: '#F46800' },
-  { id: 'splunk', icon: SiSplunk, label: 'Splunk' },
-  { id: 'openshift', icon: SiRedhatopenshift, label: 'OpenShift', color: '#EE0000' },
-  { id: 'jira', icon: SiJira, label: 'Jira', color: '#0052CC' },
-  { id: 'confluence', icon: SiConfluence, label: 'Confluence', color: '#172B4D' },
-  { id: 'cloud', icon: Icons.Cloud, label: 'Cloud' },
-];
+const COLOR_VARIANTS: Record<string, string> = {
+  default: 'border-border/50 bg-card/50 hover:border-primary/30',
+  red: 'border-red-500/50 bg-red-500/10 hover:border-red-500 hover:bg-red-500/20',
+  orange: 'border-orange-500/50 bg-orange-500/10 hover:border-orange-500 hover:bg-orange-500/20',
+  yellow: 'border-yellow-500/50 bg-yellow-500/10 hover:border-yellow-500 hover:bg-yellow-500/20',
+  green: 'border-green-500/50 bg-green-500/10 hover:border-green-500 hover:bg-green-500/20',
+  blue: 'border-blue-500/50 bg-blue-500/10 hover:border-blue-500 hover:bg-blue-500/20',
+  purple: 'border-purple-500/50 bg-purple-500/10 hover:border-purple-500 hover:bg-purple-500/20',
+  pink: 'border-pink-500/50 bg-pink-500/10 hover:border-pink-500 hover:bg-pink-500/20',
+};
 
 export default function StoragePage() {
   const currentEnv = useAppStore((state) => state.envFilter);
@@ -38,6 +31,11 @@ export default function StoragePage() {
 
   const [isCreateItemOpen, setIsCreateItemOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<StorageItem | null>(null);
+
+  // Reset to root path whenever environment changes
+  useEffect(() => {
+    setCurrentFolderId(null);
+  }, [currentEnv]);
 
   // Filter entities according to environment and current nested path level
   const activeFolders = folders.filter(
@@ -69,30 +67,30 @@ export default function StoragePage() {
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 animate-fade-in flex flex-col h-full">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
-        <div className="flex-1 w-full sm:w-auto">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            Storage & Resources
-          </h1>
-          <div className="mt-4">
+      <div className="flex flex-col gap-4 shrink-0">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          Storage & Resources
+        </h1>
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex-1 w-full min-w-0">
             <StorageBreadcrumbs
               currentFolderId={currentFolderId}
               onNavigate={setCurrentFolderId}
             />
           </div>
-        </div>
-
-        <div className="flex items-center gap-3 mt-2 sm:mt-0">
-          {currentFolderId && (
-            <Button variant="outline" className="gap-2 shrink-0 shadow-sm" onClick={() => setIsCreateItemOpen(true)}>
+          <div className="flex items-center gap-3 shrink-0">
+            {currentFolderId && (
+              <Button variant="outline" className="gap-2 shadow-sm" onClick={() => setIsCreateItemOpen(true)}>
+                <Plus className="h-4 w-4" />
+                Add Item
+              </Button>
+            )}
+            <Button variant="default" className="gap-2 shadow-sm" onClick={() => setIsCreateFolderOpen(true)}>
               <Plus className="h-4 w-4" />
-              Add Item
+              New Folder
             </Button>
-          )}
-          <Button variant="default" className="gap-2 shrink-0 shadow-sm" onClick={() => setIsCreateFolderOpen(true)}>
-            <Plus className="h-4 w-4" />
-            New Folder
-          </Button>
+          </div>
         </div>
       </div>
 
@@ -119,14 +117,7 @@ export default function StoragePage() {
                     return (
                       <div
                         key={folder.id}
-                        className="relative group border rounded-xl overflow-hidden bg-card/50 backdrop-blur-sm transition-all hover:shadow-md flex items-center p-1"
-                        style={folder.color ? {
-                          borderColor: `${folder.color}40`,
-                          backgroundColor: `${folder.color}10`,
-                          boxShadow: `inset 0 0 20px ${folder.color}05`
-                        } : {
-                          borderColor: 'hsl(var(--border) / 0.5)'
-                        }}
+                        className={`relative group border rounded-xl overflow-hidden backdrop-blur-sm transition-all hover:shadow-md flex items-center p-1 ${COLOR_VARIANTS[folder.color || 'default'] || COLOR_VARIANTS.default}`}
                       >
                         <div
                           className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
@@ -219,7 +210,7 @@ export default function StoragePage() {
                   {activeItems.map(item => (
                     <div
                       key={item.id}
-                      className="relative group border border-border/50 rounded-xl overflow-hidden bg-card transition-all hover:shadow-md hover:border-primary/30"
+                      className={`relative group border rounded-xl overflow-hidden transition-all hover:shadow-md ${COLOR_VARIANTS[item.color || 'default'] || COLOR_VARIANTS.default}`}
                     >
                       <div
                         className="cursor-pointer"
@@ -299,7 +290,7 @@ export default function StoragePage() {
           if (!op) setFolderToEdit(null);
         }}
         folderToEdit={folderToEdit}
-        parentId={currentFolderId} // Passes active dir to create new folders inside it
+        parentId={currentFolderId}
       />
 
       {currentFolderId && (
