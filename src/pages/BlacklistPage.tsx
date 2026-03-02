@@ -174,7 +174,7 @@ const BlacklistPage = () => {
                                     <Textarea value={formData.reason} onChange={(e) => setFormData({ ...formData, reason: e.target.value })} placeholder="Incident ID or reason..." />
                                 </div>
                             </div>
-                            <DialogFooter><Button onClick={() => handleAddEntry('source')}>Deploy Block</Button></DialogFooter>
+                            <DialogFooter><Button onClick={() => handleAddEntry('source')}>Block Source</Button></DialogFooter>
                         </DialogContent>
                     </Dialog>
 
@@ -245,7 +245,7 @@ const BlacklistPage = () => {
                                     <Textarea value={formData.reason} onChange={(e) => setFormData({ ...formData, reason: e.target.value })} placeholder="Critical failure details..." />
                                 </div>
                             </div>
-                            <DialogFooter><Button onClick={() => handleAddEntry('destination')}>Deploy Block</Button></DialogFooter>
+                            <DialogFooter><Button onClick={() => handleAddEntry('destination')}>Block Destination</Button></DialogFooter>
                         </DialogContent>
                     </Dialog>
 
@@ -335,44 +335,7 @@ const BlacklistPage = () => {
                 </Table>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-                <div className="p-4 rounded-lg border border-status-critical/20 bg-status-critical/5 flex items-start gap-3 shadow-sm">
-                    <div className="p-2 rounded-full bg-status-critical/10 text-status-critical">
-                        <XCircle className="h-5 w-5" />
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-semibold">Stops & Blocks</h3>
-                        <p className="text-xs text-muted-foreground mt-1">
-                            Active blacklist rules force immediately stopping data transmission to prevents downstream impact.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="p-4 rounded-lg border border-status-warning/20 bg-status-warning/5 flex items-start gap-3 shadow-sm">
-                    <div className="p-2 rounded-full bg-status-warning/10 text-status-warning">
-                        <AlertCircle className="h-5 w-5" />
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-semibold">Incident Response</h3>
-                        <p className="text-xs text-muted-foreground mt-1">
-                            Use blacklists for rapid isolation during data corruption or infrastructure failure incidents.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="p-4 rounded-lg border border-primary/20 bg-primary/5 flex items-start gap-3 shadow-sm">
-                    <div className="p-2 rounded-full bg-primary/10 text-primary">
-                        <CheckCircle2 className="h-5 w-5" />
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-semibold">Audit Ready</h3>
-                        <p className="text-xs text-muted-foreground mt-1">
-                            All entries are logged with creator and reason to maintain compliance and transparency.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div >
+        </div>
     );
 };
 

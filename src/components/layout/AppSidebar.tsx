@@ -46,9 +46,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-mono font-bold text-sm">
-            M
-          </div>
+          <img src="/favicon.svg" alt="Metro Logo" className="w-8 h-8" />
           {!collapsed && (
             <div>
               <h1 className="text-sm font-bold text-sidebar-accent-foreground tracking-tight">Metro ETL</h1>
