@@ -11,7 +11,6 @@ import MetricsPage from "./pages/MetricsPage";
 import ResourcesPage from "./pages/ResourcesPage";
 import LivenessPage from "./pages/LivenessPage";
 import StoragePage from "./pages/StoragePage";
-import PipelineCreatorPage from "./pages/PipelineCreatorPage";
 import BlacklistPage from "./pages/BlacklistPage";
 import NotFound from "./pages/NotFound";
 
@@ -31,7 +30,6 @@ const App = () => (
             <Route path="/storage" element={<StoragePage />} />
             <Route path="/metrics" element={<MetricsPage />} />
             <Route path="/resources" element={<ResourcesPage />} />
-            <Route path="/pipeline-creator" element={<PipelineCreatorPage />} />
             <Route path="/blacklist" element={<BlacklistPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

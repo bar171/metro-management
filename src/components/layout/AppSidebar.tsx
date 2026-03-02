@@ -33,7 +33,6 @@ const navItems = [
   { title: 'Storage & Links', url: '/storage', icon: Folder },
   { title: 'Metrics', url: '/metrics', icon: BarChart3 },
   { title: 'Resources', url: '/resources', icon: Server },
-  { title: 'Pipeline Creator', url: '/pipeline-creator', icon: Wrench },
   { title: 'Blacklist Admin', url: '/blacklist', icon: ShieldAlert },
 ];
 

@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAppStore } from '@/stores/useAppStore';
 import * as LucideIcons from 'lucide-react';
+import { LucideIcon } from 'lucide-react';
 import {
   SiSplunk,
   SiGrafana,
@@ -23,7 +24,7 @@ import {
   SiRedhatopenshift
 } from 'react-icons/si';
 
-export const BRAND_ICONS: { id: string; icon?: any; imgUrl?: string; label: string; color?: string }[] = [
+export const BRAND_ICONS: { id: string; icon?: LucideIcon | React.ComponentType; imgUrl?: string; label: string; color?: string }[] = [
   { id: 'kafka', icon: SiApachekafka, label: 'Kafka' }, // No color -> inherits text color
   { id: 'postgres', icon: SiPostgresql, label: 'Postgres', color: '#4169E1' },
   { id: 'redis', icon: SiRedis, label: 'Redis', color: '#DC382D' },
@@ -227,7 +228,7 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit, parentId 
 
                 {/* Standard Icons follow immediately after */}
                 {GENERIC_ICONS.map((iconName) => {
-                  const Icon = (LucideIcons as any)[iconName];
+                  const Icon = (LucideIcons as unknown as Record<string, LucideIcon>)[iconName];
                   if (!Icon) return null;
                   return (
                     <button

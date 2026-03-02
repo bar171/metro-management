@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { LucideIcon } from 'lucide-react';
 import { useStorageStore, StorageFolder, StorageItem } from '@/stores/useStorageStore';
 import { useAppStore } from '@/stores/useAppStore';
 import { Plus, MoreVertical, Trash2, Edit2, Link as LinkIcon, Image as ImageIcon, FileText, ExternalLink } from 'lucide-react';
@@ -113,7 +114,7 @@ export default function StoragePage() {
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Folders</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {activeFolders.map((folder) => {
-                    const Icon = (Icons as any)[folder.icon] || Icons.Folder;
+                    const Icon = (Icons as unknown as Record<string, LucideIcon>)[folder.icon] || Icons.Folder;
                     return (
                       <div
                         key={folder.id}
@@ -150,7 +151,7 @@ export default function StoragePage() {
                                   const BrandIcon = brand.icon;
                                   return <BrandIcon className="h-5 w-5" style={brand.color ? { color: brand.color } : folder.color ? {} : {}} />;
                                 }
-                                const Icon = (Icons as any)[folder.icon] || Icons.Folder;
+                                const Icon = (Icons as unknown as Record<string, LucideIcon>)[folder.icon] || Icons.Folder;
                                 return <Icon className="h-5 w-5" />;
                               })()}
                             </div>
