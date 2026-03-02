@@ -167,7 +167,7 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit, parentId 
 
             <div className="grid gap-2">
               <Label className="flex justify-between items-center">
-                <span>Or select a brand icon</span>
+                <span>select icon</span>
               </Label>
               <div className="grid grid-cols-6 gap-2">
                 {BRAND_ICONS.map((brand) => {
