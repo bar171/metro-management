@@ -152,7 +152,7 @@ export function generateMetrics(pipelines: Pipeline[], services: Service[]): Met
       for (let i = 0; i < 20; i++) {
         let value: number;
         switch (type) {
-          case 'kafka_lag': value = svc.status === 'lagging' ? 1500 + Math.floor(Math.random() * 10000) : Math.floor(Math.random() * 50); break;
+          case 'kafka_lag': value = svc.status === 'lagging' ? 300 + Math.floor(Math.random() * 700) : Math.floor(Math.random() * 50); break;
           case 'throughput': value = 500 + Math.floor(Math.random() * 4500); break;
           case 'cpu_usage': value = 20 + Math.floor(Math.random() * 70); break;
           case 'memory_usage': value = 30 + Math.floor(Math.random() * 60); break;

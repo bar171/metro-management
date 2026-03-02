@@ -18,8 +18,14 @@ const themes: { value: ThemeMode; label: string }[] = [
 export function AppHeader() {
   const { theme, setTheme, envFilter, setEnvFilter } = useAppStore();
 
+  const envColors = {
+    dev: 'bg-status-healthy/20 border-b-status-healthy/50',
+    prep: 'bg-status-degraded/20 border-b-status-degraded/50',
+    prod: 'bg-status-critical/20 border-b-status-critical/50',
+  };
+
   return (
-    <header className="h-12 flex items-center gap-3 px-3 border-b border-border bg-card/50 backdrop-blur-sm shrink-0">
+    <header className={`h-12 flex items-center gap-3 px-3 border-b shrink-0 ${envColors[envFilter]}`}>
       <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
 
       <div className="flex-1" />
