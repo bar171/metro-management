@@ -61,7 +61,10 @@ const BlacklistPage = () => {
     const [formData, setFormData] = useState({
         pipelineId: '',
         targetValue: '',
-        reason: ''
+        reason: '',
+        serviceName: '',
+        destinationType: '',
+        elementId: ''
     });
 
     useEffect(() => {
@@ -75,29 +78,43 @@ const BlacklistPage = () => {
     );
 
     const handleAddEntry = async (type: 'source' | 'destination' | 'broker' | 'pipeline') => {
-        if (!formData.reason || !formData.targetValue || (type !== 'broker' && !formData.pipelineId)) {
-            toast.error('Please fill in all required fields');
-            return;
+        let finalTargetValue = formData.targetValue;
+        const pipeline = pipelines.find(p => p.id === formData.pipelineId);
+        const pipelineName = pipeline ? pipeline.name.toLowerCase() : '';
+
+        if (type === 'source') {
+            if (!formData.pipelineId || !formData.serviceName || !formData.elementId || !formData.reason) {
+                toast.error('Please fill in all required fields');
+                return;
+            }
+            finalTargetValue = `${pipelineName}:${formData.serviceName}:source:${formData.elementId}`;
+        } else if (type === 'destination') {
+            if (!formData.pipelineId || !formData.serviceName || !formData.destinationType || !formData.elementId || !formData.reason) {
+                toast.error('Please fill in all required fields');
+                return;
+            }
+            finalTargetValue = `${pipelineName}:${formData.serviceName}:${formData.destinationType}:${formData.elementId}`;
+        } else if (type === 'broker') {
+            if (!formData.targetValue || !formData.reason) {
+                toast.error('Please fill in all required fields');
+                return;
+            }
         }
 
         try {
             await addBlacklist({
                 pipelineId: type === 'broker' ? 'all' : formData.pipelineId,
                 targetType: type,
-                targetValue: formData.targetValue,
+                targetValue: finalTargetValue,
                 reason: formData.reason
             });
             setDialogOpen(null);
-            setFormData({ pipelineId: '', targetValue: '', reason: '' });
+            setFormData({ pipelineId: '', targetValue: '', reason: '', serviceName: '', destinationType: '', elementId: '' });
             toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} block deployed`);
         } catch (error) {
             toast.error('Failed to deploy block');
         }
     };
-
-    const selectedPipelineServices = services.filter(s => s.pipelineId === formData.pipelineId);
-    const sources = selectedPipelineServices.filter(s => s.stage === 'source');
-    const destinations = selectedPipelineServices.filter(s => s.stage === 'sink');
 
     return (
         <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -127,17 +144,30 @@ const BlacklistPage = () => {
                             <div className="space-y-4 py-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Pipeline</label>
-                                    <Select onValueChange={(v) => setFormData({ ...formData, pipelineId: v, targetValue: '' })}>
+                                    <Select onValueChange={(v) => setFormData({ ...formData, pipelineId: v, targetValue: '', serviceName: '', elementId: '' })}>
                                         <SelectTrigger><SelectValue placeholder="Select Pipeline" /></SelectTrigger>
                                         <SelectContent>{pipelines.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Source ID</label>
-                                    <Select disabled={!formData.pipelineId} onValueChange={(v) => setFormData({ ...formData, targetValue: v })}>
-                                        <SelectTrigger><SelectValue placeholder="Select Source" /></SelectTrigger>
-                                        <SelectContent>{sources.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
+                                    <label className="text-sm font-medium">Service Name</label>
+                                    <Select disabled={!formData.pipelineId} value={formData.serviceName} onValueChange={(v) => setFormData({ ...formData, serviceName: v })}>
+                                        <SelectTrigger><SelectValue placeholder="Select Service" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="kafka-consumer">Kafka Consumer</SelectItem>
+                                            <SelectItem value="get-data">Get Data</SelectItem>
+                                            <SelectItem value="push-data">Push Data</SelectItem>
+                                        </SelectContent>
                                     </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Source ID</label>
+                                    <Input
+                                        disabled={!formData.pipelineId}
+                                        placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000"
+                                        value={formData.elementId}
+                                        onChange={(e) => setFormData({ ...formData, elementId: e.target.value })}
+                                    />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Reason</label>
@@ -162,17 +192,53 @@ const BlacklistPage = () => {
                             <div className="space-y-4 py-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Pipeline</label>
-                                    <Select onValueChange={(v) => setFormData({ ...formData, pipelineId: v, targetValue: '' })}>
+                                    <Select onValueChange={(v) => setFormData({ ...formData, pipelineId: v, targetValue: '', serviceName: '', destinationType: '', elementId: '' })}>
                                         <SelectTrigger><SelectValue placeholder="Select Pipeline" /></SelectTrigger>
                                         <SelectContent>{pipelines.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Destination</label>
-                                    <Select disabled={!formData.pipelineId} onValueChange={(v) => setFormData({ ...formData, targetValue: v })}>
-                                        <SelectTrigger><SelectValue placeholder="Select Sink" /></SelectTrigger>
-                                        <SelectContent>{destinations.map(s => <SelectItem key={s.id} value={`kafka:${s.name}`}>{s.name} (Kafka)</SelectItem>)}</SelectContent>
+                                    <label className="text-sm font-medium">Service Name</label>
+                                    <Select disabled={!formData.pipelineId} value={formData.serviceName} onValueChange={(v) => setFormData({ ...formData, serviceName: v, destinationType: '' })}>
+                                        <SelectTrigger><SelectValue placeholder="Select Service" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="publish">Publish</SelectItem>
+                                            <SelectItem value="sink-data">Sink Data</SelectItem>
+                                        </SelectContent>
                                     </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Destination Type</label>
+                                    <Select disabled={!formData.serviceName} value={formData.destinationType} onValueChange={(v) => setFormData({ ...formData, destinationType: v })}>
+                                        <SelectTrigger><SelectValue placeholder="Select Type" /></SelectTrigger>
+                                        <SelectContent>
+                                            {formData.serviceName === 'publish' && (
+                                                <>
+                                                    <SelectItem value="kafka">Kafka</SelectItem>
+                                                    <SelectItem value="gateway">Gateway</SelectItem>
+                                                </>
+                                            )}
+                                            {formData.serviceName === 'sink-data' && (
+                                                <SelectItem value="postgres">Postgres</SelectItem>
+                                            )}
+                                            {!formData.serviceName && (
+                                                <>
+                                                    <SelectItem value="kafka">Kafka</SelectItem>
+                                                    <SelectItem value="gateway">Gateway</SelectItem>
+                                                    <SelectItem value="postgres">Postgres</SelectItem>
+                                                </>
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Destination ID</label>
+                                    <Input
+                                        disabled={!formData.pipelineId}
+                                        placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000"
+                                        value={formData.elementId}
+                                        onChange={(e) => setFormData({ ...formData, elementId: e.target.value })}
+                                    />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Reason</label>
