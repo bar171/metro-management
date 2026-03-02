@@ -35,12 +35,12 @@ export default function ServicesPage() {
       });
   }, [services, pipelines, search, activePipelines]);
 
-  const handleRestart = async (svcId: string) => {
+  const handleRollout = async (svcId: string) => {
     setRollingId(svcId);
     await new Promise(r => setTimeout(r, 600));
     await updateService(svcId, { status: 'healthy' });
     setRollingId(null);
-    toast.success('Service restarted');
+    toast.success('Service rollout complete');
   };
 
   const handleScale = async (svcId: string, replicaDelta: number = 0, newCpu?: number, newMem?: number) => {
@@ -81,7 +81,7 @@ export default function ServicesPage() {
             className="gap-2 text-xs h-8"
             onClick={() => {
               const allSvcs = services.filter(s => s.pipelineId !== 'global');
-              toast.info(`Restarting all services...`, { description: `Rolling restart of ${allSvcs.length} services across all pipelines.` });
+              toast.info(`Rolling out all services...`, { description: `Rollout of ${allSvcs.length} services across all pipelines.` });
               allSvcs.forEach((svc, i) => {
                 setTimeout(() => updateService(svc.id, { status: 'degraded' }), i * 100);
                 setTimeout(() => updateService(svc.id, { status: 'healthy' }), 2000 + i * 100);
@@ -89,7 +89,7 @@ export default function ServicesPage() {
             }}
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            Restart All Services
+            Rollout All Services
           </Button>
         </div>
       </div>
@@ -154,19 +154,19 @@ export default function ServicesPage() {
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="ghost" size="sm" className="h-7 text-[10px] gap-1">
-                        <RotateCcw className="h-3 w-3" /> Restart
+                        <RotateCcw className="h-3 w-3" /> Rollout
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Restart Service</AlertDialogTitle>
+                        <AlertDialogTitle>Rollout Service</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Restart <span className="font-mono font-bold">{svc.name}</span> on <span className="font-mono">{svc.pipelineName}</span>? This will trigger a rolling restart.
+                          Rollout <span className="font-mono font-bold">{svc.name}</span> on <span className="font-mono">{svc.pipelineName}</span>? This will trigger a rolling deployment.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleRestart(svc.id)}>Restart</AlertDialogAction>
+                        <AlertDialogAction onClick={() => handleRollout(svc.id)}>Rollout</AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>

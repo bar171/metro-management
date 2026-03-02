@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Users, Server, Settings2, Plus, Trash2, ArrowRightLeft, RotateCcw, ArrowRight } from 'lucide-react';
+import { Search, Users, Server, Settings2, Plus, Trash2, ArrowRightLeft, RotateCcw, ArrowRight, HardDrive } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
@@ -111,7 +111,7 @@ export default function PipelinesPage() {
   const handleDeletePipeline = async () => {
     if (!selected) return;
     if (pipelineGroups.length > 0) {
-      toast.error(`Cannot delete! Pipeline has ${pipelineGroups.length} associated groups. Please reassign them first.`);
+      toast.error(`Cannot delete !Pipeline has ${pipelineGroups.length} associated groups.Please reassign them first.`);
       return;
     }
     await deletePipeline(selected.id);
@@ -124,7 +124,8 @@ export default function PipelinesPage() {
     await createGroup({
       name: newGroupName,
       primaryPipelineId: selected.id,
-      secondaryPipelineIds: []
+      secondaryPipelineIds: [],
+      etlDailyTransportMaxSizeGb: 15
     });
     setNewGroupName('');
     setIsCreateGroupOpen(false);
@@ -262,7 +263,7 @@ export default function PipelinesPage() {
                     size="sm"
                     className="gap-2"
                     onClick={() => {
-                      toast.info(`Restarting all ${selected.name} services...`, { description: `Rolling restart of ${pipelineServices.length} services initiated.` });
+                      toast.info(`Rolling out all ${selected.name} services...`, { description: `Rollout of ${pipelineServices.length} services initiated.` });
                       pipelineServices.forEach((svc, i) => {
                         setTimeout(() => updateService(svc.id, { status: 'degraded' }), i * 200);
                         setTimeout(() => updateService(svc.id, { status: 'healthy' }), 2000 + i * 200);
@@ -270,7 +271,7 @@ export default function PipelinesPage() {
                     }}
                   >
                     <RotateCcw className="w-4 h-4" />
-                    Restart Pipeline
+                    Rollout Pipeline
                   </Button>
 
                   <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -415,7 +416,8 @@ export default function PipelinesPage() {
                                 className={`absolute rounded-md border flex flex-col justify-center gap-1.5 p-2 cursor-pointer
                                   ${svc ? (svc.status === 'degraded' ? 'bg-status-critical/10 border-status-critical/50 shadow-[0_0_15px_rgba(255,0,0,0.15)]' :
                                     svc.status === 'lagging' ? 'bg-status-warning/10 border-status-warning/50' :
-                                      'bg-card border-border shadow-sm') : 'bg-surface-1/30 border-dashed border-border/50 opacity-60'} z-10 transition-colors hover:border-primary/50`}
+                                      'bg-card border-border shadow-sm') : 'bg-surface-1/30 border-dashed border-border/50 opacity-60'
+                                  } z-10 transition-colors hover:border-primary/50`}
                                 style={{ left: x, top: y, width: 150, height: 60 }}
                               >
                                 <div className="flex items-center gap-2">
@@ -602,6 +604,26 @@ export default function PipelinesPage() {
                             </div>
                           </div>
 
+                          <div className="pt-2 border-t border-border space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono uppercase tracking-wider">
+                                <HardDrive className="w-3 h-3" />
+                                ETL Daily Transport Max Size
+                              </div>
+                              <span className="text-xs font-mono font-bold text-primary">{group.etlDailyTransportMaxSizeGb} GB</span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <Slider
+                                value={[group.etlDailyTransportMaxSizeGb]}
+                                min={1}
+                                max={100}
+                                step={1}
+                                className="flex-1"
+                                onValueChange={([val]) => updateGroup(group.id, { etlDailyTransportMaxSizeGb: val })}
+                              />
+                            </div>
+                          </div>
+
                           {secondaryPipelines.length > 0 && (
                             <div className="pt-2 border-t border-border">
                               <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider mb-2">Secondary Pipelines</div>
@@ -612,10 +634,10 @@ export default function PipelinesPage() {
                                     <button
                                       key={sp.id}
                                       onClick={() => handleToggleSecondary(group.id, sp.id, group.secondaryPipelineIds)}
-                                      className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${isActive
-                                        ? 'bg-primary/15 border-primary/50 text-primary'
-                                        : 'bg-surface-1 border-border text-muted-foreground hover:border-primary/30'
-                                        }`}
+                                      className={`px - 3 py - 1.5 rounded - md text - xs font - medium border transition - all ${isActive
+                                          ? 'bg-primary/15 border-primary/50 text-primary'
+                                          : 'bg-surface-1 border-border text-muted-foreground hover:border-primary/30'
+                                        } `}
                                     >
                                       {sp.name}
                                     </button>
@@ -667,7 +689,7 @@ export default function PipelinesPage() {
                             size="sm"
                             className="h-7 text-[10px] gap-1.5 px-2.5"
                             onClick={() => {
-                              toast.info(`Rolling out ${svc.name}...`, { description: 'Deployment restart initiated.' });
+                              toast.info(`Rolling out ${svc.name}...`, { description: 'Deployment rollout initiated.' });
                               updateService(svc.id, { status: 'degraded' });
                               setTimeout(() => updateService(svc.id, { status: 'healthy' }), 2000);
                             }}
@@ -689,7 +711,7 @@ export default function PipelinesPage() {
                           </div>
                           <div className="flex flex-wrap gap-1.5 p-2 rounded bg-surface-1/50 border border-border min-h-[36px]">
                             {Array.from({ length: svc.replicas }).map((_, i) => (
-                              <div key={i} className={`w-3 h-3 rounded-full ${svc.status === 'healthy' ? 'bg-status-healthy' : 'bg-status-degraded'} shadow-[0_0_8px_rgba(0,0,0,0.2)]`} title={`Pod ${i + 1}`} />
+                              <div key={i} className={`w - 3 h - 3 rounded - full ${svc.status === 'healthy' ? 'bg-status-healthy' : 'bg-status-degraded'} shadow - [0_0_8px_rgba(0, 0, 0, 0.2)]`} title={`Pod ${i + 1} `} />
                             ))}
                             {svc.replicas === 0 && <span className="text-[10px] text-muted-foreground italic my-auto">Scaled to zero (0) pods.</span>}
                           </div>

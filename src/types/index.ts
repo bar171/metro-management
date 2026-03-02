@@ -18,6 +18,7 @@ export interface Group {
   name: string;
   primaryPipelineId: string;
   secondaryPipelineIds: string[];
+  etlDailyTransportMaxSizeGb: number;
   lastActive: string;
 }
 

@@ -297,7 +297,7 @@ export default function LivenessPage() {
                                     <>
                                         <div className="text-red-400">[ERROR] {new Date().toISOString()} - Container crash loop backoff detected.</div>
                                         <div className="text-red-400">[FATAL] {new Date().toISOString()} - OutOfMemoryException: Required {svc.memoryLimit * 1.5}Mi but limit is {svc.memoryLimit}Mi.</div>
-                                        <div>[INFO] {new Date().toISOString()} - Restarting pod...</div>
+                                        <div>[INFO] {new Date().toISOString()} - Rolling out pod...</div>
                                     </>
                                 ) : (
                                     <>
