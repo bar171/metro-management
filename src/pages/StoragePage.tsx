@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStorageStore, StorageFolder, StorageItem } from '@/stores/useStorageStore';
 import { useAppStore } from '@/stores/useAppStore';
 import { Plus, MoreVertical, Trash2, Edit2, Link as LinkIcon, Image as ImageIcon, FileText, ExternalLink } from 'lucide-react';
@@ -9,6 +9,17 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { CreateFolderDialog } from '@/components/storage/CreateFolderDialog';
 import { CreateItemDialog } from '@/components/storage/CreateItemDialog';
 import { StorageBreadcrumbs } from '@/components/storage/StorageBreadcrumbs';
+
+const COLOR_VARIANTS: Record<string, string> = {
+  default: 'border-border/50 bg-card/50 hover:border-primary/30',
+  red: 'border-red-500/50 bg-red-500/10 hover:border-red-500 hover:bg-red-500/20',
+  orange: 'border-orange-500/50 bg-orange-500/10 hover:border-orange-500 hover:bg-orange-500/20',
+  yellow: 'border-yellow-500/50 bg-yellow-500/10 hover:border-yellow-500 hover:bg-yellow-500/20',
+  green: 'border-green-500/50 bg-green-500/10 hover:border-green-500 hover:bg-green-500/20',
+  blue: 'border-blue-500/50 bg-blue-500/10 hover:border-blue-500 hover:bg-blue-500/20',
+  purple: 'border-purple-500/50 bg-purple-500/10 hover:border-purple-500 hover:bg-purple-500/20',
+  pink: 'border-pink-500/50 bg-pink-500/10 hover:border-pink-500 hover:bg-pink-500/20',
+};
 
 export default function StoragePage() {
   const currentEnv = useAppStore((state) => state.envFilter);
@@ -21,6 +32,11 @@ export default function StoragePage() {
 
   const [isCreateItemOpen, setIsCreateItemOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<StorageItem | null>(null);
+
+  // Reset to root path whenever environment changes
+  useEffect(() => {
+    setCurrentFolderId(null);
+  }, [currentEnv]);
 
   // Filter entities according to environment and current nested path level
   const activeFolders = folders.filter(
@@ -52,30 +68,30 @@ export default function StoragePage() {
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 animate-fade-in flex flex-col h-full">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
-        <div className="flex-1 w-full sm:w-auto">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            Storage & Resources
-          </h1>
-          <div className="mt-4">
+      <div className="flex flex-col gap-4 shrink-0">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          Storage & Resources
+        </h1>
+        
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex-1 w-full min-w-0">
             <StorageBreadcrumbs 
               currentFolderId={currentFolderId} 
               onNavigate={setCurrentFolderId} 
             />
           </div>
-        </div>
-        
-        <div className="flex items-center gap-3 mt-2 sm:mt-0">
-          {currentFolderId && (
-            <Button variant="outline" className="gap-2 shrink-0 shadow-sm" onClick={() => setIsCreateItemOpen(true)}>
+          <div className="flex items-center gap-3 shrink-0">
+            {currentFolderId && (
+              <Button variant="outline" className="gap-2 shadow-sm" onClick={() => setIsCreateItemOpen(true)}>
+                <Plus className="h-4 w-4" />
+                Add Item
+              </Button>
+            )}
+            <Button variant="default" className="gap-2 shadow-sm" onClick={() => setIsCreateFolderOpen(true)}>
               <Plus className="h-4 w-4" />
-              Add Item
+              New Folder
             </Button>
-          )}
-          <Button variant="default" className="gap-2 shrink-0 shadow-sm" onClick={() => setIsCreateFolderOpen(true)}>
-            <Plus className="h-4 w-4" />
-            New Folder
-          </Button>
+          </div>
         </div>
       </div>
 
@@ -102,7 +118,7 @@ export default function StoragePage() {
                     return (
                       <div 
                         key={folder.id} 
-                        className="relative group border border-border/50 rounded-xl overflow-hidden bg-card/50 backdrop-blur-sm transition-all hover:shadow-md hover:border-primary/30 flex items-center p-1"
+                        className={`relative group border rounded-xl overflow-hidden backdrop-blur-sm transition-all hover:shadow-md flex items-center p-1 ${COLOR_VARIANTS[folder.color || 'default'] || COLOR_VARIANTS.default}`}
                       >
                         <div 
                           className="flex-1 flex items-center gap-4 p-3 cursor-pointer"
@@ -158,7 +174,7 @@ export default function StoragePage() {
                   {activeItems.map(item => (
                     <div 
                       key={item.id} 
-                      className="relative group border border-border/50 rounded-xl overflow-hidden bg-card transition-all hover:shadow-md hover:border-primary/30"
+                      className={`relative group border rounded-xl overflow-hidden transition-all hover:shadow-md ${COLOR_VARIANTS[item.color || 'default'] || COLOR_VARIANTS.default}`}
                     >
                       <div 
                         className="cursor-pointer"
