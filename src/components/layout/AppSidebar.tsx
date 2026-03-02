@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
+import { useState, useCallback } from 'react';
 import {
   Sidebar,
   SidebarContent,
@@ -41,10 +42,23 @@ export function AppSidebar() {
   const collapsed = state === 'collapsed';
   const location = useLocation();
 
+  const [passingTrains, setPassingTrains] = useState<number[]>([]);
+
+  const handleLogoClick = useCallback(() => {
+    const id = Date.now() + Math.random();
+    setPassingTrains(prev => [...prev, id]);
+    setTimeout(() => {
+      setPassingTrains(prev => prev.filter(trainId => trainId !== id));
+    }, 3000);
+  }, []);
+
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="p-4">
-        <div className="flex items-center gap-2">
+        <div
+          className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={handleLogoClick}
+        >
           <img src="/favicon.svg" alt="Metro Logo" className="w-8 h-8" />
           {!collapsed && (
             <div>
@@ -80,6 +94,16 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      {/* Easter Egg Trains */}
+      {passingTrains.map(id => (
+        <img
+          key={id}
+          src="/train.png"
+          alt="Metro Train"
+          className="fixed top-1/2 z-[600] h-[900px] w-auto pointer-events-none animate-train-ride"
+        />
+      ))}
     </Sidebar>
   );
 }

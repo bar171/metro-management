@@ -23,7 +23,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useAppStore } from '@/stores/useAppStore';
 import { toast } from 'sonner';
-import { Zap } from 'lucide-react';
+import { Zap, Calendar } from 'lucide-react';
 
 const formSchema = z.object({
     fromTime: z.string().min(1, 'From time is required'),
@@ -67,7 +67,7 @@ export function BroadBackfillDialog() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2 text-xs h-8 border-primary/20 hover:border-primary/50 hover:bg-primary/5 transition-all">
+                <Button variant="outline" className="gap-2 text-xs h-8 border-[#333] hover:border-primary/50 hover:bg-primary/5 hover:shadow-[0_0_12px_rgba(255,255,255,0.15)] transition-all">
                     <Zap className="w-3.5 h-3.5 text-primary" />
                     Broad Backfill
                 </Button>
@@ -86,10 +86,13 @@ export function BroadBackfillDialog() {
                                 control={form.control}
                                 name="fromTime"
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-xs">From Time</FormLabel>
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel className="text-xs mb-1">From Time</FormLabel>
                                         <FormControl>
-                                            <Input type="datetime-local" {...field} className="h-8 text-xs bg-surface-1" />
+                                            <div className="relative w-full flex items-center">
+                                                <Input type="datetime-local" {...field} className="h-9 w-full text-xs bg-surface-1 pl-3 pr-8 py-1 cursor-text" />
+                                                <Calendar className="absolute right-2.5 w-4 h-4 text-muted-foreground pointer-events-none" />
+                                            </div>
                                         </FormControl>
                                         <FormMessage className="text-[10px]" />
                                     </FormItem>
@@ -99,10 +102,13 @@ export function BroadBackfillDialog() {
                                 control={form.control}
                                 name="toTime"
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-xs">To Time</FormLabel>
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel className="text-xs mb-1">To Time</FormLabel>
                                         <FormControl>
-                                            <Input type="datetime-local" {...field} className="h-8 text-xs bg-surface-1" />
+                                            <div className="relative w-full flex items-center">
+                                                <Input type="datetime-local" {...field} className="h-9 w-full text-xs bg-surface-1 pl-3 pr-8 py-1 cursor-text" />
+                                                <Calendar className="absolute right-2.5 w-4 h-4 text-muted-foreground pointer-events-none" />
+                                            </div>
                                         </FormControl>
                                         <FormMessage className="text-[10px]" />
                                     </FormItem>
@@ -114,10 +120,10 @@ export function BroadBackfillDialog() {
                                 control={form.control}
                                 name="deltaMs"
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-xs">Delta (ms)</FormLabel>
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel className="text-xs mb-1">Delta (ms)</FormLabel>
                                         <FormControl>
-                                            <Input type="number" {...field} className="h-8 text-xs bg-surface-1" />
+                                            <Input type="number" {...field} className="h-9 w-full text-xs bg-surface-1 px-3" />
                                         </FormControl>
                                         <FormMessage className="text-[10px]" />
                                     </FormItem>
@@ -127,10 +133,10 @@ export function BroadBackfillDialog() {
                                 control={form.control}
                                 name="queryIntervalMs"
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-xs">Query Interval (ms)</FormLabel>
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel className="text-xs mb-1">Query Interval (ms)</FormLabel>
                                         <FormControl>
-                                            <Input type="number" {...field} className="h-8 text-xs bg-surface-1" />
+                                            <Input type="number" {...field} className="h-9 w-full text-xs bg-surface-1 px-3" />
                                         </FormControl>
                                         <FormMessage className="text-[10px]" />
                                     </FormItem>

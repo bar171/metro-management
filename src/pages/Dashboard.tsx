@@ -51,28 +51,33 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold">Executive Overview</h2>
-          <p className="text-xs text-muted-foreground font-mono">Real-time ETL infrastructure status</p>
+          <h2 className="text-lg font-semibold">Metro Overview</h2>
+          <p className="text-xs text-muted-foreground font-mono">Real-time status</p>
         </div>
         <BroadBackfillDialog />
       </div>
 
-      {/* KPI Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}>
-          <KpiTile label="Total Pipelines" value={filteredPipelines.length} subtitle={`${pipelines.filter(a => a.priority === 'critical').length} critical`} />
+          <KpiTile
+            label="Total Pipelines"
+            value={filteredPipelines.length}
+            subtitle={`${pipelines.filter(a => a.priority === 'critical').length} critical`}
+            variant={pipelines.filter(a => a.priority === 'critical').length > 0 ? 'critical' : 'default'}
+            icon={Activity}
+          />
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-          <KpiTile label="Total Pods" value={totalPods} variant="accent" />
+          <KpiTile label="Total Pods" value={totalPods} variant="accent" icon={Server} />
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <KpiTile label="Avg Kafka Lag" value={avgKafkaLag.toLocaleString()} variant={avgKafkaLag > 8000 ? 'warning' : 'default'} subtitle="messages" />
+          <KpiTile label="Avg Kafka Lag" value={avgKafkaLag.toLocaleString()} variant={avgKafkaLag > 5000 ? 'warning' : 'default'} subtitle="messages" icon={Zap} />
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-          <KpiTile label="DB Connections" value={dbConnections} />
+          <KpiTile label="DB Connections" value={dbConnections} variant={dbConnections > 1000 ? 'warning' : 'default'} icon={Activity} />
         </motion.div>
       </div>
 

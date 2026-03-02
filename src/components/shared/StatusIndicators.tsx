@@ -52,22 +52,46 @@ export function KpiTile({
   value,
   subtitle,
   variant = 'default',
+  icon: Icon,
 }: {
   label: string;
   value: string | number;
   subtitle?: string;
   variant?: 'default' | 'accent' | 'warning' | 'critical';
+  icon?: React.ElementType;
 }) {
   return (
     <div className={cn(
-      'rounded-lg border border-border bg-card p-4 flex flex-col gap-1',
-      variant === 'accent' && 'border-accent/30',
-      variant === 'warning' && 'border-status-degraded/30',
-      variant === 'critical' && 'border-status-critical/30 glow-critical',
+      'relative rounded-xl border border-[#333] bg-background/50 backdrop-blur-sm p-6 flex flex-col items-center text-center gap-1 overflow-hidden',
+      variant === 'accent' && 'border-accent/50',
+      variant === 'warning' && 'border-amber-500/50',
+      variant === 'critical' && 'border-destructive/50 glow-critical',
     )}>
-      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono">{label}</span>
-      <span className="text-2xl font-bold font-mono tabular-nums">{value}</span>
-      {subtitle && <span className="text-xs text-muted-foreground">{subtitle}</span>}
+      {/* Subtle Radial Gradient */}
+      <div className={cn(
+        "absolute -top-12 -left-12 w-32 h-32 rounded-full blur-[50px] opacity-20 pointer-events-none",
+        variant === 'critical' ? 'bg-destructive' : variant === 'warning' ? 'bg-amber-500' : variant === 'accent' ? 'bg-accent' : 'bg-primary'
+      )} />
+
+      <div className="flex w-full items-center justify-center relative z-10">
+        {Icon && <Icon className="absolute left-0 w-4 h-4 text-muted-foreground/60" />}
+        <span className="text-xs uppercase tracking-wider text-muted-foreground font-sans font-medium">{label}</span>
+      </div>
+
+      <span className="text-4xl font-extrabold font-sans tabular-nums tracking-tight relative z-10 mt-1">{value}</span>
+
+      <div className="mt-2 min-h-[20px] flex items-center justify-center relative z-10">
+        {subtitle && (
+          <span className={cn(
+            "text-[10px] font-sans font-medium uppercase tracking-wider px-2 py-0.5 rounded",
+            variant === 'critical' && "bg-destructive/20 text-destructive",
+            variant === 'warning' && "bg-amber-500/20 text-amber-500",
+            variant !== 'critical' && variant !== 'warning' && "text-muted-foreground"
+          )}>
+            {subtitle}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

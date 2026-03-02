@@ -69,6 +69,9 @@ export default function PipelinesPage() {
   // Delete Group State
   const [groupToDelete, setGroupToDelete] = useState<{ id: string; name: string } | null>(null);
 
+  // Group Search State
+  const [groupSearch, setGroupSearch] = useState('');
+
   const filteredPipelines = useMemo(() => {
     let result = pipelines;
     if (envFilter !== 'all') result = result.filter(a => a.environment === envFilter);
@@ -78,7 +81,14 @@ export default function PipelinesPage() {
 
   const selected = useMemo(() => pipelines.find(a => a.id === selectedPipelineId), [pipelines, selectedPipelineId]);
   const pipelineServices = useMemo(() => services.filter(s => s.pipelineId === selectedPipelineId), [services, selectedPipelineId]);
-  const pipelineGroups = useMemo(() => groups.filter(g => g.primaryPipelineId === selectedPipelineId || g.secondaryPipelineIds.includes(selectedPipelineId || '')), [groups, selectedPipelineId]);
+  const workloadServices = useMemo(() => pipelineServices.filter(s => s.name !== 'scheduler'), [pipelineServices]);
+  const pipelineGroups = useMemo(() => {
+    let result = groups.filter(g => g.primaryPipelineId === selectedPipelineId || g.secondaryPipelineIds.includes(selectedPipelineId || ''));
+    if (groupSearch) {
+      result = result.filter(g => g.name.toLowerCase().includes(groupSearch.toLowerCase()));
+    }
+    return result;
+  }, [groups, selectedPipelineId, groupSearch]);
 
   const getPipelineHealth = (pipelineId: string): ServiceStatus => {
     const svcs = services.filter(s => s.pipelineId === pipelineId);
@@ -223,9 +233,13 @@ export default function PipelinesPage() {
                     <PriorityBadge priority={pipeline.priority} />
                   </div>
                   {groupsForPipe.length > 0 && (
-                    <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-1 truncate">
-                      <Users className="w-3 h-3 inline" />
-                      {groupsForPipe.map(g => g.name).join(', ')}
+                    <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-1 truncate" title={groupsForPipe.map(g => g.name).join(', ')}>
+                      <Users className="w-3 h-3 inline shrink-0" />
+                      <span className="truncate">
+                        {groupsForPipe.length <= 2
+                          ? groupsForPipe.map(g => g.name).join(', ')
+                          : `${groupsForPipe.slice(0, 2).map(g => g.name).join(', ')} +${groupsForPipe.length - 2} more`}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -257,7 +271,12 @@ export default function PipelinesPage() {
                     </h2>
                     {pipelineGroups.length > 0 ? (
                       <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-                        Owned by: <span className="font-medium text-foreground">{pipelineGroups.map(g => g.name).join(', ')}</span>
+                        Owned by:
+                        <span className="font-medium text-foreground line-clamp-1" title={pipelineGroups.map(g => g.name).join(', ')}>
+                          {pipelineGroups.length <= 5
+                            ? pipelineGroups.map(g => g.name).join(', ')
+                            : `${pipelineGroups.slice(0, 5).map(g => g.name).join(', ')} +${pipelineGroups.length - 5} more`}
+                        </span>
                       </p>
                     ) : (
                       <p className="text-sm text-muted-foreground mt-1 italic">No owner groups assigned</p>
@@ -344,78 +363,76 @@ export default function PipelinesPage() {
                     <div className="px-5 py-3.5 border-b border-border text-sm font-semibold flex justify-between items-center text-foreground uppercase tracking-wider">
                       Metro Microservices Flow
                     </div>
-                    <div className="overflow-x-auto overflow-y-hidden relative w-full custom-scrollbar h-[550px] bg-surface-1/5">
-                      <div className="min-w-[1450px] h-[550px] relative">
-                        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
-                          <defs>
-                            <marker id="arrow" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
-                              <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" className="text-muted-foreground/50" />
-                            </marker>
-                            <marker id="arrow-red" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
-                              <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" className="text-status-critical/80" />
-                            </marker>
-                            <marker id="arrow-blue" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
-                              <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" className="text-blue-500/80" />
-                            </marker>
-                          </defs>
+                    <div className="w-full bg-surface-1/5 rounded-b-lg">
+                      <svg viewBox="0 0 1785 540" className="w-full h-auto pointer-events-none" style={{ zIndex: 0 }}>
+                        <defs>
+                          <marker id="arrow" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
+                            <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" className="text-muted-foreground/50" />
+                          </marker>
+                          <marker id="arrow-red" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
+                            <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" className="text-status-critical/80" />
+                          </marker>
+                          <marker id="arrow-blue" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
+                            <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" className="text-blue-500/80" />
+                          </marker>
+                        </defs>
 
-                          {/* push-data -> python-validate */}
-                          {pipelineServices.some(s => s.name === 'push-data') && (
-                            <path d="M 190 110 L 475 110 L 475 190 L 520 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
-                          )}
+                        {/* push-data -> python-validate */}
+                        {pipelineServices.some(s => s.name === 'push-data') && (
+                          <path d="M 285 165 L 712.5 165 L 712.5 285 L 780 285" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                        )}
 
-                          {/* kafka-consumer -> python-validate */}
-                          {pipelineServices.some(s => s.name === 'kafka-consumer') && (
-                            <path d="M 190 190 L 520 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
-                          )}
+                        {/* kafka-consumer -> python-validate */}
+                        {pipelineServices.some(s => s.name === 'kafka-consumer') && (
+                          <path d="M 285 285 L 780 285" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                        )}
 
-                          {/* scheduler -> get-data */}
-                          {pipelineServices.some(s => s.name === 'scheduler') && (
-                            <path d="M 190 270 L 280 270" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
-                          )}
+                        {/* scheduler -> get-data */}
+                        {pipelineServices.some(s => s.name === 'scheduler') && (
+                          <path d="M 285 405 L 420 405" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                        )}
 
-                          {/* get-data -> python-validate */}
-                          <path d="M 430 270 L 475 270 L 475 190 L 520 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                        {/* get-data -> python-validate */}
+                        <path d="M 645 405 L 712.5 405 L 712.5 285 L 780 285" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
 
-                          {/* Python Validate -> Transform Data/External Transform and Publish */}
-                          {pipelineServices.some(s => s.name === 'external-transform' || s.name === 'transform-data') ? (
-                            <>
-                              {/* Validate -> Transform Data */}
-                              {pipelineServices.some(s => s.name === 'transform-data') && (
-                                <path d="M 670 190 L 760 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
-                              )}
+                        {/* Python Validate -> Transform Data/External Transform and Publish */}
+                        {pipelineServices.some(s => s.name === 'external-transform' || s.name === 'transform-data') ? (
+                          <>
+                            {/* Validate -> Transform Data */}
+                            {pipelineServices.some(s => s.name === 'transform-data') && (
+                              <path d="M 1005 285 L 1140 285" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                            )}
 
-                              {/* Validate -> External Transform */}
-                              {pipelineServices.some(s => s.name === 'external-transform') && (
-                                <path d="M 670 190 L 715 190 L 715 110 L 760 110" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
-                              )}
+                            {/* Validate -> External Transform */}
+                            {pipelineServices.some(s => s.name === 'external-transform') && (
+                              <path d="M 1005 285 L 1072.5 285 L 1072.5 165 L 1140 165" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                            )}
 
-                              {/* Bypass: Validate -> Common junction point before parallel split */}
-                              <path d="M 670 190 L 715 190 L 715 240 L 910 240 L 910 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" />
+                            {/* Bypass: Validate -> Common junction point before parallel split */}
+                            <path d="M 1005 285 L 1072.5 285 L 1072.5 360 L 1365 360 L 1365 285" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" />
 
-                              {/* External Transform Loop Back -> Python Validate */}
-                              {pipelineServices.some(s => s.name === 'external-transform') && (
-                                <path d="M 835 80 L 835 40 L 595 40 L 595 154" stroke="currentColor" fill="none" strokeWidth="2" className="text-blue-500/60" markerEnd="url(#arrow-blue)" />
-                              )}
+                            {/* External Transform Loop Back -> Python Validate */}
+                            {pipelineServices.some(s => s.name === 'external-transform') && (
+                              <path d="M 1252.5 120 L 1252.5 60 L 892.5 60 L 892.5 231" stroke="currentColor" fill="none" strokeWidth="2" className="text-blue-500/60" markerEnd="url(#arrow-blue)" />
+                            )}
 
-                              {/* Transform Data -> Junction point */}
-                              {pipelineServices.some(s => s.name === 'transform-data') && (
-                                <path d="M 910 190 L 910 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" />
-                              )}
-                            </>
-                          ) : (
-                            /* Directly Validate -> Junction point if no transform */
-                            <path d="M 670 190 L 910 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" />
-                          )}
+                            {/* Transform Data -> Junction point */}
+                            {pipelineServices.some(s => s.name === 'transform-data') && (
+                              <path d="M 1365 285 L 1365 285" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" />
+                            )}
+                          </>
+                        ) : (
+                          /* Directly Validate -> Junction point if no transform */
+                          <path d="M 1005 285 L 1365 285" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" />
+                        )}
 
-                          {/* Python Validate -> Informative Validation (Invalid) */}
-                          <path d="M 595 220 L 595 274" stroke="currentColor" fill="none" strokeWidth="2" className="text-status-critical/60" markerEnd="url(#arrow-red)" />
-                          <text x="605" y="250" className="text-[10px] fill-status-critical/80 font-mono font-bold tracking-widest">INVALID</text>
+                        {/* Python Validate -> Informative Validation (Invalid) */}
+                        <path d="M 892.5 330 L 892.5 411" stroke="currentColor" fill="none" strokeWidth="2" className="text-status-critical/60" markerEnd="url(#arrow-red)" />
+                        <text x="905" y="375" className="text-xs fill-status-critical/80 font-mono font-bold tracking-widest">INVALID</text>
 
-                          {/* Parallel Split from Junction Point (910, 190) */}
-                          <path d="M 910 190 L 955 190 L 955 110 L 1000 110" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
-                          <path d="M 910 190 L 955 190 L 955 270 L 1000 270" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
-                        </svg>
+                        {/* Parallel Split from Junction Point (1365, 285) */}
+                        <path d="M 1365 285 L 1432.5 285 L 1432.5 165 L 1500 165" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                        <path d="M 1365 285 L 1432.5 285 L 1432.5 405 L 1500 405" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
 
                         {/* Rendering Nodes Helper */}
                         {(() => {
@@ -424,19 +441,18 @@ export default function PipelinesPage() {
 
                             const nodeContent = (
                               <div
-                                className={`absolute rounded-md border flex flex-col justify-center gap-1.5 p-2 cursor-pointer
+                                className={`w-full h-full rounded-md border flex flex-col justify-center gap-1.5 p-3 cursor-pointer
                                   ${svc ? (svc.status === 'degraded' ? 'bg-status-critical/10 border-status-critical/50 shadow-[0_0_15px_rgba(255,0,0,0.15)]' :
                                     svc.status === 'lagging' ? 'bg-status-warning/10 border-status-warning/50' :
                                       'bg-card border-border shadow-sm') : 'bg-surface-1/30 border-dashed border-border/50 opacity-60'
                                   } z-10 transition-colors hover:border-primary/50`}
-                                style={{ left: x, top: y, width: 150, height: 60 }}
                               >
                                 <div className="flex items-center gap-2">
-                                  {svc ? <StatusDot status={svc.status} pulse /> : <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />}
-                                  <span className="font-mono text-[11px] font-bold truncate text-foreground" title={name}>{name}</span>
+                                  {svc ? <StatusDot status={svc.status} pulse className="w-3 h-3" /> : <div className="w-3 h-3 rounded-full bg-muted-foreground/30" />}
+                                  <span className="font-mono text-sm font-bold truncate text-foreground" title={name}>{name}</span>
                                 </div>
                                 {svc && (
-                                  <div className="flex items-center justify-between text-[9px] text-muted-foreground font-mono">
+                                  <div className="flex items-center justify-between text-xs text-muted-foreground font-mono mt-1">
                                     <span>{svc.replicas} pods</span>
                                     <span>{svc.cpuLimit}m</span>
                                   </div>
@@ -444,104 +460,119 @@ export default function PipelinesPage() {
                               </div>
                             );
 
-                            if (!svc) return <div key={name}>{nodeContent}</div>;
+                            if (!svc) return (
+                              <foreignObject key={name} x={x} y={y} width="225" height="90" className="overflow-visible pointer-events-auto">
+                                {nodeContent}
+                              </foreignObject>
+                            );
 
                             return (
-                              <Popover key={name}>
-                                <PopoverTrigger asChild>
-                                  {nodeContent}
-                                </PopoverTrigger>
-                                <PopoverContent className="w-64 p-4 space-y-4" side="top">
-                                  <div className="flex items-center gap-2 border-b border-border pb-2">
-                                    <StatusDot status={svc.status} pulse />
-                                    <h4 className="font-mono font-bold text-sm">{svc.name}</h4>
-                                  </div>
-
-                                  <div className="space-y-3">
-                                    <div className="space-y-1.5">
-                                      <div className="flex items-center justify-between">
-                                        <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Pods</label>
-                                        <span className="font-mono text-[10px] text-muted-foreground">{svc.replicas} / 16</span>
-                                      </div>
-                                      <Slider
-                                        value={[svc.replicas]}
-                                        min={0}
-                                        max={16}
-                                        step={1}
-                                        onValueChange={([v]) => updateService(svc.id, { replicas: v })}
-                                      />
+                              <foreignObject key={name} x={x} y={y} width="225" height="90" className="overflow-visible pointer-events-auto">
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    {nodeContent}
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-64 p-4 space-y-4" side="top">
+                                    <div className="flex items-center gap-2 border-b border-border pb-2">
+                                      <StatusDot status={svc.status} pulse />
+                                      <h4 className="font-mono font-bold text-sm">{svc.name}</h4>
                                     </div>
 
-                                    <div className="space-y-1.5 pt-2 border-t border-border">
-                                      <div className="flex items-center justify-between">
-                                        <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">CPU Limit</label>
-                                        <Input
-                                          type="number"
-                                          value={svc.cpuLimit}
-                                          onChange={e => updateService(svc.id, { cpuLimit: Number(e.target.value) || 10 })}
-                                          className="h-6 w-16 text-[10px] font-mono px-1.5"
+                                    <div className="space-y-3">
+                                      <div className="space-y-1.5">
+                                        <div className="flex items-center justify-between">
+                                          <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Pods</label>
+                                          <span className="font-mono text-[10px] text-muted-foreground">{svc.replicas} / 16</span>
+                                        </div>
+                                        <Slider
+                                          value={[svc.replicas]}
+                                          min={0}
+                                          max={16}
+                                          step={1}
+                                          onValueChange={([v]) => updateService(svc.id, { replicas: v })}
                                         />
                                       </div>
-                                      <Slider
-                                        value={[svc.cpuLimit]}
-                                        min={100}
-                                        max={4000}
-                                        step={100}
-                                        onValueChange={([v]) => updateService(svc.id, { cpuLimit: v })}
-                                      />
-                                    </div>
 
-                                    <div className="space-y-1.5 pt-2 border-t border-border">
-                                      <div className="flex items-center justify-between">
-                                        <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Mem Limit (Mi)</label>
-                                        <Input
-                                          type="number"
-                                          value={svc.memoryLimit}
-                                          onChange={e => updateService(svc.id, { memoryLimit: Number(e.target.value) || 16 })}
-                                          className="h-6 w-16 text-[10px] font-mono px-1.5"
+                                      <div className="space-y-1.5 pt-2 border-t border-border">
+                                        <div className="flex items-center justify-between">
+                                          <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">CPU Limit</label>
+                                          <Input
+                                            type="number"
+                                            value={svc.cpuLimit}
+                                            onChange={e => updateService(svc.id, { cpuLimit: Number(e.target.value) || 10 })}
+                                            className="h-6 w-16 text-[10px] font-mono px-1.5"
+                                          />
+                                        </div>
+                                        <Slider
+                                          value={[svc.cpuLimit]}
+                                          min={100}
+                                          max={4000}
+                                          step={100}
+                                          onValueChange={([v]) => updateService(svc.id, { cpuLimit: v })}
                                         />
                                       </div>
-                                      <Slider
-                                        value={[svc.memoryLimit]}
-                                        min={128}
-                                        max={8192}
-                                        step={128}
-                                        onValueChange={([v]) => updateService(svc.id, { memoryLimit: v })}
-                                      />
+
+                                      <div className="space-y-1.5 pt-2 border-t border-border">
+                                        <div className="flex items-center justify-between">
+                                          <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Mem Limit (Mi)</label>
+                                          <Input
+                                            type="number"
+                                            value={svc.memoryLimit}
+                                            onChange={e => updateService(svc.id, { memoryLimit: Number(e.target.value) || 16 })}
+                                            className="h-6 w-16 text-[10px] font-mono px-1.5"
+                                          />
+                                        </div>
+                                        <Slider
+                                          value={[svc.memoryLimit]}
+                                          min={128}
+                                          max={8192}
+                                          step={128}
+                                          onValueChange={([v]) => updateService(svc.id, { memoryLimit: v })}
+                                        />
+                                      </div>
                                     </div>
-                                  </div>
-                                </PopoverContent>
-                              </Popover>
+                                  </PopoverContent>
+                                </Popover>
+                              </foreignObject>
                             );
                           };
                           return (
                             <>
                               {/* Sources */}
-                              {pipelineServices.some(s => s.name === 'push-data') && renderNode('push-data', 40, 80)}
-                              {pipelineServices.some(s => s.name === 'kafka-consumer') && renderNode('kafka-consumer', 40, 160)}
-                              {pipelineServices.some(s => s.name === 'scheduler') && renderNode('scheduler', 40, 240)}
+                              {pipelineServices.some(s => s.name === 'push-data') && renderNode('push-data', 60, 120)}
+                              {pipelineServices.some(s => s.name === 'kafka-consumer') && renderNode('kafka-consumer', 60, 240)}
+                              {/* Scheduler is disabled/grayed out visually */}
+                              <foreignObject x={60} y={360} width="225" height="90" className="overflow-visible pointer-events-auto">
+                                <div className="w-full h-full rounded-md border flex flex-col justify-center gap-1.5 p-3 bg-surface-1/30 border-dashed border-border/50 opacity-60 z-10">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-muted-foreground/30" />
+                                    <span className="font-mono text-sm font-bold truncate text-muted-foreground" title="scheduler">scheduler</span>
+                                  </div>
+                                  <div className="text-xs italic font-mono mt-1">cannot be adjusted per pipeline</div>
+                                </div>
+                              </foreignObject>
 
                               {/* Get Data */}
-                              {renderNode('get-data', 280, 240)}
+                              {renderNode('get-data', 420, 360)}
                               {/* Validate */}
-                              {renderNode('python-validate', 520, 160)}
-                              {renderNode('informative-validation', 520, 280)}
+                              {renderNode('python-validate', 780, 240)}
+                              {renderNode('informative-validation', 780, 420)}
 
                               {/* Transform (Optional) */}
                               {pipelineServices.some(s => s.name === 'external-transform' || s.name === 'transform-data') && (
                                 <>
-                                  {pipelineServices.some(s => s.name === 'external-transform') && renderNode('external-transform', 760, 80)}
-                                  {pipelineServices.some(s => s.name === 'transform-data') && renderNode('transform-data', 760, 160)}
+                                  {pipelineServices.some(s => s.name === 'external-transform') && renderNode('external-transform', 1140, 120)}
+                                  {pipelineServices.some(s => s.name === 'transform-data') && renderNode('transform-data', 1140, 240)}
                                 </>
                               )}
 
                               {/* Publish & Sink (Parallel) */}
-                              {renderNode('publish', 1000, 80)}
-                              {renderNode('sink-data', 1000, 240)}
+                              {renderNode('publish', 1500, 120)}
+                              {renderNode('sink-data', 1500, 360)}
                             </>
                           );
                         })()}
-                      </div>
+                      </svg>
                     </div>
                   </div>
                 </TabsContent>
@@ -574,6 +605,16 @@ export default function PipelinesPage() {
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
+                  </div>
+
+                  <div className="relative max-w-sm">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input
+                      placeholder="Search groups in this pipeline..."
+                      value={groupSearch}
+                      onChange={e => setGroupSearch(e.target.value)}
+                      className="h-8 pl-8 text-xs bg-surface-1"
+                    />
                   </div>
 
                   {pipelineGroups.length === 0 ? (
@@ -688,7 +729,7 @@ export default function PipelinesPage() {
                 <TabsContent value="workloads" className="space-y-6">
                   {/* Individual Services */}
                   <div className="grid md:grid-cols-2 gap-4">
-                    {pipelineServices.map(svc => (
+                    {workloadServices.map(svc => (
                       <div key={svc.id} className="rounded-lg border border-border bg-card p-4 space-y-4">
                         <div className="flex items-center justify-between border-b border-border pb-3">
                           <div className="flex items-center gap-2">
