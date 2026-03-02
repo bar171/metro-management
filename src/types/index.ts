@@ -65,3 +65,10 @@ export interface LogEntry {
   message: string;
   timestamp: string;
 }
+
+export interface BackfillRequest {
+  fromTime: string;
+  toTime: string;
+  deltaMs: number;
+  queryIntervalMs: number;
+}

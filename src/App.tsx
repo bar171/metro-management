@@ -11,7 +11,6 @@ import MetricsPage from "./pages/MetricsPage";
 import ResourcesPage from "./pages/ResourcesPage";
 import LivenessPage from "./pages/LivenessPage";
 import PipelineCreatorPage from "./pages/PipelineCreatorPage";
-import LogsPage from "./pages/LogsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,7 +30,6 @@ const App = () => (
             <Route path="/metrics" element={<MetricsPage />} />
             <Route path="/resources" element={<ResourcesPage />} />
             <Route path="/pipeline-creator" element={<PipelineCreatorPage />} />
-            <Route path="/logs" element={<LogsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>

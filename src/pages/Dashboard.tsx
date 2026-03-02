@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Zap, Server, Cpu, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 import { mockOpenShiftApi, type ClusterMetrics } from '@/lib/openshift';
+import { BroadBackfillDialog } from '@/components/dashboard/BroadBackfillDialog';
 
 export default function Dashboard() {
   const { pipelines, services, metrics, logs, loading, envFilter } = useAppStore();
@@ -51,9 +52,12 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold">Executive Overview</h2>
-        <p className="text-xs text-muted-foreground font-mono">Real-time ETL infrastructure status</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold">Executive Overview</h2>
+          <p className="text-xs text-muted-foreground font-mono">Real-time ETL infrastructure status</p>
+        </div>
+        <BroadBackfillDialog />
       </div>
 
       {/* KPI Grid */}

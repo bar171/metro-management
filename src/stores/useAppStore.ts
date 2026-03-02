@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import type { Pipeline, Service, ResourceProfile, MetricSnapshot, LogEntry, ThemeMode, Group } from '@/types';
+import type { Pipeline, Service, ResourceProfile, MetricSnapshot, LogEntry, ThemeMode, Group, BackfillRequest } from '@/types';
 import { pipelineOrm, serviceOrm, resourceProfileOrm, metricOrm, logOrm, groupOrm } from '@/lib/mockOrm';
+import { mockBackfillApi } from '@/lib/backfill';
 
 interface AppState {
   // Theme
@@ -40,6 +41,7 @@ interface AppState {
 
   appendMetric: (data: Omit<MetricSnapshot, 'id'>) => Promise<void>;
   appendLog: (data: Omit<LogEntry, 'id'>) => Promise<void>;
+  broadBackfill: (request: BackfillRequest) => Promise<void>;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -167,8 +169,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   appendLog: async (data) => {
-    await logOrm.append(data);
     const logs = await logOrm.findMany({ limit: 100 });
     set({ logs });
+  },
+
+  broadBackfill: async (request: BackfillRequest) => {
+    const response = await mockBackfillApi.submit(request);
+    if (response.success) {
+      // In a real app we might update some state here
+      console.log(`Backfill request ${response.requestId} submitted.`);
+    }
   },
 }));

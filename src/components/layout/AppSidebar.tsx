@@ -31,7 +31,6 @@ const navItems = [
   { title: 'Metrics', url: '/metrics', icon: BarChart3 },
   { title: 'Resources', url: '/resources', icon: Server },
   { title: 'Pipeline Creator', url: '/pipeline-creator', icon: Wrench },
-  { title: 'Logs', url: '/logs', icon: ScrollText },
 ];
 
 export function AppSidebar() {

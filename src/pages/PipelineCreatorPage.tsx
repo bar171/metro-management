@@ -133,14 +133,34 @@ export default function PipelineCreatorPage() {
                                                         {pipelineGroups.map(group => (
                                                             <div key={group.id} className="flex items-center justify-between bg-surface-2 p-1.5 px-2 rounded border border-border">
                                                                 <span className="text-xs flex items-center gap-1.5"><Users className="w-3 h-3 text-muted-foreground" />{group.name}</span>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="h-5 w-5 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                                                    onClick={() => handleDeleteGroup(group.id)}
-                                                                >
-                                                                    <Trash2 className="w-3 h-3" />
-                                                                </Button>
+                                                                <AlertDialog>
+                                                                    <AlertDialogTrigger asChild>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="h-5 w-5 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                                                        >
+                                                                            <Trash2 className="w-3 h-3" />
+                                                                        </Button>
+                                                                    </AlertDialogTrigger>
+                                                                    <AlertDialogContent>
+                                                                        <AlertDialogHeader>
+                                                                            <AlertDialogTitle>Delete Group: {group.name}</AlertDialogTitle>
+                                                                            <AlertDialogDescription>
+                                                                                Are you sure you want to remove this group? This action cannot be undone.
+                                                                            </AlertDialogDescription>
+                                                                        </AlertDialogHeader>
+                                                                        <AlertDialogFooter>
+                                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                            <AlertDialogAction
+                                                                                onClick={() => handleDeleteGroup(group.id)}
+                                                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                                            >
+                                                                                Confirm Delete
+                                                                            </AlertDialogAction>
+                                                                        </AlertDialogFooter>
+                                                                    </AlertDialogContent>
+                                                                </AlertDialog>
                                                             </div>
                                                         ))}
                                                     </div>
