@@ -3,7 +3,7 @@ export type Priority = 'normal' | 'high' | 'critical';
 export type ServiceStatus = 'healthy' | 'degraded' | 'lagging';
 export type Severity = 'critical' | 'warning' | 'info';
 export type MetricType = 'kafka_lag' | 'throughput' | 'cpu_usage' | 'memory_usage' | 'db_connections' | 'error_rate' | 'pending_tasks';
-export type ThemeMode = 'light' | 'dark' | 'midnight' | 'cyberpunk';
+export type ThemeMode = 'light' | 'dark' | 'midnight' | 'cyberpunk' | 'rose' | 'forest';
 
 export interface ResourceProfile {
   id: string;

@@ -8,6 +8,7 @@ import {
   HeartPulse,
   Wrench,
   ShieldAlert,
+  Folder,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
@@ -29,6 +30,7 @@ const navItems = [
   { title: 'Liveness (Live)', url: '/liveness', icon: HeartPulse },
   { title: 'Pipelines', url: '/pipelines', icon: GitBranch },
 
+  { title: 'Storage & Links', url: '/storage', icon: Folder },
   { title: 'Metrics', url: '/metrics', icon: BarChart3 },
   { title: 'Resources', url: '/resources', icon: Server },
   { title: 'Pipeline Creator', url: '/pipeline-creator', icon: Wrench },

@@ -179,6 +179,84 @@
     --sidebar-border: 120 100% 49% / 0.15;
     --sidebar-ring: 120 100% 49%;
   }
+
+  .rose {
+    --background: 350 40% 98%;
+    --foreground: 350 30% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 350 30% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 350 30% 15%;
+    --primary: 345 70% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 350 20% 90%;
+    --secondary-foreground: 350 30% 25%;
+    --muted: 350 20% 94%;
+    --muted-foreground: 350 20% 45%;
+    --accent: 15 80% 65%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 350 20% 88%;
+    --input: 350 20% 88%;
+    --ring: 345 70% 65%;
+
+    --surface-1: 350 40% 99%;
+    --surface-2: 350 40% 95%;
+    --surface-3: 350 40% 90%;
+
+    --glow-primary: 345 70% 65% / 0.2;
+    --glow-accent: 15 80% 65% / 0.2;
+    --glow-critical: 0 72% 51% / 0.2;
+
+    --sidebar-background: 350 35% 15%;
+    --sidebar-foreground: 350 20% 85%;
+    --sidebar-primary: 345 70% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 350 30% 22%;
+    --sidebar-accent-foreground: 350 20% 95%;
+    --sidebar-border: 350 30% 20%;
+    --sidebar-ring: 345 70% 65%;
+  }
+
+  .forest {
+    --background: 140 40% 8%;
+    --foreground: 140 30% 85%;
+    --card: 140 40% 10%;
+    --card-foreground: 140 30% 85%;
+    --popover: 140 40% 10%;
+    --popover-foreground: 140 30% 85%;
+    --primary: 145 60% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 140 30% 18%;
+    --secondary-foreground: 140 20% 75%;
+    --muted: 140 30% 15%;
+    --muted-foreground: 140 20% 55%;
+    --accent: 85 50% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 140 30% 20%;
+    --input: 140 30% 20%;
+    --ring: 145 60% 45%;
+
+    --surface-1: 140 40% 6%;
+    --surface-2: 140 40% 12%;
+    --surface-3: 140 40% 16%;
+
+    --glow-primary: 145 60% 45% / 0.25;
+    --glow-accent: 85 50% 50% / 0.2;
+    --glow-critical: 0 72% 51% / 0.2;
+
+    --sidebar-background: 140 45% 6%;
+    --sidebar-foreground: 140 30% 75%;
+    --sidebar-primary: 145 60% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 140 40% 14%;
+    --sidebar-accent-foreground: 140 30% 85%;
+    --sidebar-border: 140 40% 16%;
+    --sidebar-ring: 145 60% 45%;
+  }
 }
 
 @layer base {

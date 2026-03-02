@@ -11,6 +11,8 @@ const themes: { value: ThemeMode; label: string }[] = [
   { value: 'dark', label: 'Dark' },
   { value: 'midnight', label: 'Midnight Blue' },
   { value: 'cyberpunk', label: 'Cyberpunk' },
+  { value: 'rose', label: 'Rose Gold' },
+  { value: 'forest', label: 'Forest Green' },
 ];
 
 export function AppHeader() {
@@ -29,9 +31,9 @@ export function AppHeader() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="prod">Prod</SelectItem>
-            <SelectItem value="prep">Prep</SelectItem>
             <SelectItem value="dev">Dev</SelectItem>
+            <SelectItem value="prep">Prep</SelectItem>
+            <SelectItem value="prod">Prod</SelectItem>
           </SelectContent>
         </Select>
 
