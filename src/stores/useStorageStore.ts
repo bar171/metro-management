@@ -8,6 +8,7 @@ export interface StorageFolder {
     name: string;
     icon: string;
     customIconUrl?: string; // Optional user-uploaded image URL
+    color?: string; // Optional custom color for the folder
     environmentId: string;
     parentId?: string | null; // Optional parent folder for nesting
     createdAt: string;
@@ -47,14 +48,14 @@ export const useStorageStore = create<StorageStore>()(
                 {
                     id: '1',
                     name: 'Kafka',
-                    icon: 'Database',
+                    icon: 'kafka',
                     environmentId: 'dev',
                     createdAt: new Date().toISOString(),
                 },
                 {
                     id: '2',
                     name: 'Redis',
-                    icon: 'DatabaseZap',
+                    icon: 'redis',
                     environmentId: 'dev',
                     createdAt: new Date().toISOString(),
                 }

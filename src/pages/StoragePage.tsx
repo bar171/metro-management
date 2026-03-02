@@ -9,13 +9,30 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { CreateFolderDialog } from '@/components/storage/CreateFolderDialog';
 import { CreateItemDialog } from '@/components/storage/CreateItemDialog';
 import { StorageBreadcrumbs } from '@/components/storage/StorageBreadcrumbs';
+import {
+  SiSplunk, SiGrafana, SiApachekafka, SiPostgresql, SiRedis,
+  SiJira, SiConfluence, SiRedhatopenshift,
+} from 'react-icons/si';
+
+const BRAND_ICONS: { id: string; icon?: any; imgUrl?: string; label: string; color?: string }[] = [
+  { id: 'kafka', icon: SiApachekafka, label: 'Kafka' },
+  { id: 'postgres', icon: SiPostgresql, label: 'Postgres', color: '#4169E1' },
+  { id: 'redis', icon: SiRedis, label: 'Redis', color: '#DC382D' },
+  { id: 'airflow', imgUrl: '/airflow-icon.svg', label: 'Airflow' },
+  { id: 'grafana', icon: SiGrafana, label: 'Grafana', color: '#F46800' },
+  { id: 'splunk', icon: SiSplunk, label: 'Splunk' },
+  { id: 'openshift', icon: SiRedhatopenshift, label: 'OpenShift', color: '#EE0000' },
+  { id: 'jira', icon: SiJira, label: 'Jira', color: '#0052CC' },
+  { id: 'confluence', icon: SiConfluence, label: 'Confluence', color: '#172B4D' },
+  { id: 'cloud', icon: Icons.Cloud, label: 'Cloud' },
+];
 
 export default function StoragePage() {
   const currentEnv = useAppStore((state) => state.envFilter);
   const { folders, items, deleteFolder, deleteItem } = useStorageStore();
-  
+
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
-  
+
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const [folderToEdit, setFolderToEdit] = useState<StorageFolder | null>(null);
 
@@ -26,8 +43,8 @@ export default function StoragePage() {
   const activeFolders = folders.filter(
     f => f.environmentId === currentEnv && (f.parentId || null) === currentFolderId
   );
-  
-  const activeItems = currentFolderId 
+
+  const activeItems = currentFolderId
     ? items.filter(i => i.folderId === currentFolderId)
     : []; // Items only exist inside folders
 
@@ -58,13 +75,13 @@ export default function StoragePage() {
             Storage & Resources
           </h1>
           <div className="mt-4">
-            <StorageBreadcrumbs 
-              currentFolderId={currentFolderId} 
-              onNavigate={setCurrentFolderId} 
+            <StorageBreadcrumbs
+              currentFolderId={currentFolderId}
+              onNavigate={setCurrentFolderId}
             />
           </div>
         </div>
-        
+
         <div className="flex items-center gap-3 mt-2 sm:mt-0">
           {currentFolderId && (
             <Button variant="outline" className="gap-2 shrink-0 shadow-sm" onClick={() => setIsCreateItemOpen(true)}>
@@ -100,49 +117,93 @@ export default function StoragePage() {
                   {activeFolders.map((folder) => {
                     const Icon = (Icons as any)[folder.icon] || Icons.Folder;
                     return (
-                      <div 
-                        key={folder.id} 
-                        className="relative group border border-border/50 rounded-xl overflow-hidden bg-card/50 backdrop-blur-sm transition-all hover:shadow-md hover:border-primary/30 flex items-center p-1"
+                      <div
+                        key={folder.id}
+                        className="relative group border rounded-xl overflow-hidden bg-card/50 backdrop-blur-sm transition-all hover:shadow-md flex items-center p-1"
+                        style={folder.color ? {
+                          borderColor: `${folder.color}40`,
+                          backgroundColor: `${folder.color}10`,
+                          boxShadow: `inset 0 0 20px ${folder.color}05`
+                        } : {
+                          borderColor: 'hsl(var(--border) / 0.5)'
+                        }}
                       >
-                        <div 
-                          className="flex-1 flex items-center gap-4 p-3 cursor-pointer"
+                        <div
+                          className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+                          style={folder.color ? { backgroundImage: `linear-gradient(to bottom right, ${folder.color}20, transparent)` } : {}}
+                        />
+                        <div
+                          className="flex-1 flex items-center gap-4 p-3 cursor-pointer z-10"
                           onClick={() => setCurrentFolderId(folder.id)}
                         >
                           {folder.customIconUrl ? (
-                            <img src={folder.customIconUrl} alt={folder.name} className="h-10 w-10 rounded-lg object-cover" />
+                            <div className="h-10 w-10 rounded-lg overflow-hidden shrink-0 border border-border shadow-sm">
+                              <img src={folder.customIconUrl} alt={folder.name} className="h-full w-full object-cover" />
+                            </div>
                           ) : (
-                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                              <Icon className="h-5 w-5 text-primary" />
+                            <div
+                              className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0 border transition-colors"
+                              style={folder.color ? {
+                                backgroundColor: `${folder.color}20`,
+                                borderColor: `${folder.color}40`,
+                                color: folder.color
+                              } : {
+                                backgroundColor: 'hsl(var(--muted))',
+                                borderColor: 'hsl(var(--border) / 0.5)'
+                              }}
+                            >
+                              {(() => {
+                                const brand = BRAND_ICONS.find(b => b.id === folder.icon);
+                                if (brand) {
+                                  if (brand.imgUrl) return <img src={brand.imgUrl} alt={brand.label} className="h-6 w-6 object-contain" />;
+                                  const BrandIcon = brand.icon;
+                                  return <BrandIcon className="h-5 w-5" style={brand.color ? { color: brand.color } : folder.color ? {} : {}} />;
+                                }
+                                const Icon = (Icons as any)[folder.icon] || Icons.Folder;
+                                return <Icon className="h-5 w-5" />;
+                              })()}
                             </div>
                           )}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">
+
+                          <div className="flex-1 min-w-0 pr-4">
+                            <h3 className="font-semibold text-sm group-hover:text-primary transition-colors truncate"
+                              style={folder.color ? { color: folder.color } : { color: 'hsl(var(--foreground))' }}>
                               {folder.name}
                             </h3>
                           </div>
                         </div>
-                        
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity mr-1"
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => { setFolderToEdit(folder); setIsCreateFolderOpen(true); }}>
-                              <Edit2 className="h-4 w-4 mr-2" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteFolder(folder.id, folder.name)}>
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+
+                        <div className="relative z-20 mr-1 shrink-0">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                setFolderToEdit(folder);
+                                setIsCreateFolderOpen(true);
+                              }}>
+                                <Edit2 className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive" onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteFolder(folder.id, folder.name);
+                              }}>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
                     );
                   })}
@@ -156,11 +217,11 @@ export default function StoragePage() {
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Files & Links</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {activeItems.map(item => (
-                    <div 
-                      key={item.id} 
+                    <div
+                      key={item.id}
                       className="relative group border border-border/50 rounded-xl overflow-hidden bg-card transition-all hover:shadow-md hover:border-primary/30"
                     >
-                      <div 
+                      <div
                         className="cursor-pointer"
                         onClick={() => handleItemClick(item)}
                       >
@@ -176,7 +237,7 @@ export default function StoragePage() {
                             </div>
                           </div>
                         )}
-                        
+
                         <div className="p-3">
                           <p className="font-medium text-sm truncate flex justify-between items-center" title={item.name}>
                             {item.name}
@@ -190,9 +251,9 @@ export default function StoragePage() {
 
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="absolute top-2 right-2 h-8 w-8 bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
                             onClick={(e) => e.stopPropagation()}
                           >
@@ -200,21 +261,21 @@ export default function StoragePage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem 
-                            onClick={(e) => { 
-                              e.stopPropagation(); 
-                              setItemToEdit(item); 
-                              setIsCreateItemOpen(true); 
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setItemToEdit(item);
+                              setIsCreateItemOpen(true);
                             }}
                           >
                             <Edit2 className="h-4 w-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="text-destructive" 
-                            onClick={(e) => { 
-                              e.stopPropagation(); 
-                              deleteItem(item.id); 
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteItem(item.id);
                             }}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
@@ -231,19 +292,19 @@ export default function StoragePage() {
         )}
       </div>
 
-      <CreateFolderDialog 
-        open={isCreateFolderOpen} 
+      <CreateFolderDialog
+        open={isCreateFolderOpen}
         onOpenChange={(op) => {
           setIsCreateFolderOpen(op);
           if (!op) setFolderToEdit(null);
-        }} 
+        }}
         folderToEdit={folderToEdit}
         parentId={currentFolderId} // Passes active dir to create new folders inside it
       />
 
       {currentFolderId && (
-        <CreateItemDialog 
-          open={isCreateItemOpen} 
+        <CreateItemDialog
+          open={isCreateItemOpen}
           onOpenChange={(op) => {
             setIsCreateItemOpen(op);
             if (!op) setItemToEdit(null);
