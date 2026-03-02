@@ -69,7 +69,7 @@ export default function MetricsPage() {
       await refreshMetrics();
     }, 3000);
     return () => clearInterval(interval);
-  }, [pipelines, services, pipelineFilter, serviceFilter]);
+  }, [pipelines, services, pipelineFilter, serviceFilter, appendMetric, refreshMetrics]);
 
   const getChartData = useCallback((type: MetricType) => {
     let filtered = metrics.filter(m => m.type === type);

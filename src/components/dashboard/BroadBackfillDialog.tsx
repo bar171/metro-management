@@ -52,7 +52,7 @@ export function BroadBackfillDialog() {
     async function onSubmit(values: FormValues) {
         setSubmitting(true);
         try {
-            await broadBackfill(values as any);
+            await broadBackfill(values as import('@/types').BackfillRequest);
             toast.success('Broad backfill request submitted successfully');
             setOpen(false);
             form.reset();

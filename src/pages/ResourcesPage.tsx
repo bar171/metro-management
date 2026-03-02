@@ -11,7 +11,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
 export default function ResourcesPage() {
-  const { pipelines, services, updateService } = useAppStore();
+  const { pipelines, services, updateService, envFilter } = useAppStore();
   const [search, setSearch] = useState('');
   const [rollingId, setRollingId] = useState<string | null>(null);
   const [pipelineFilter, setPipelineFilter] = useState<string>('all');
@@ -24,27 +24,31 @@ export default function ResourcesPage() {
         setPipelineFilter(metro.id);
       }
     }
-  }, [pipelines]);
+  }, [pipelines, pipelineFilter]);
+
+  // Filter Services
+  const activePipelines = useMemo(() => {
+    return envFilter === 'all' ? pipelines : pipelines.filter(p => p.environment === envFilter);
+  }, [pipelines, envFilter]);
 
   const filteredServices = useMemo(() => {
-    let result = services.map(s => ({
-      ...s,
-      pipelineName: pipelines.find(a => a.id === s.pipelineId)?.name ?? 'Unknown',
-      pipelinePriority: pipelines.find(a => a.id === s.pipelineId)?.priority ?? 'normal',
-    }));
-
-    if (pipelineFilter !== 'all') {
-      result = result.filter(s => s.pipelineId === pipelineFilter);
-    }
-
-    if (search) {
-      result = result.filter(s =>
-        s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.pipelineName.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-    return result;
-  }, [services, pipelines, search, pipelineFilter]);
+    return services
+      .filter(s => s.pipelineId === 'global' || activePipelines.some(p => p.id === s.pipelineId))
+      .map(s => ({
+        ...s,
+        pipelineName: s.pipelineId === 'global' ? 'Global Services' : (pipelines.find(a => a.id === s.pipelineId)?.name ?? 'Unknown'),
+        pipelinePriority: s.pipelineId === 'global' ? 'high' : (pipelines.find(a => a.id === s.pipelineId)?.priority ?? 'normal'),
+      }))
+      .filter(s => {
+        if (pipelineFilter === 'all') return true;
+        return s.pipelineId === pipelineFilter;
+      })
+      .filter(s => {
+        if (!search) return true;
+        const q = search.toLowerCase();
+        return s.name.toLowerCase().includes(q) || s.pipelineName.toLowerCase().includes(q);
+      });
+  }, [services, pipelines, search, pipelineFilter, activePipelines]);
 
   const handleRestart = async (svcId: string) => {
     setRollingId(svcId);
@@ -54,16 +58,24 @@ export default function ResourcesPage() {
     toast.success('Service restarted');
   };
 
-  const handleScale = async (svcId: string, delta: number) => {
+  const handleScale = async (svcId: string, replicaDelta: number = 0, newCpu?: number, newMem?: number) => {
     const svc = services.find(s => s.id === svcId);
     if (!svc) return;
     const pipeline = pipelines.find(a => a.id === svc.pipelineId);
-    const newReplicas = Math.max(0, Math.min(16, svc.replicas + delta));
+    const newReplicas = Math.max(0, Math.min(16, svc.replicas + replicaDelta));
     if (pipeline?.priority === 'critical' && newReplicas === 0) {
       toast.error('Cannot scale to 0 replicas on critical pipeline');
       return;
     }
-    await updateService(svcId, { replicas: newReplicas });
+
+    const updates: Partial<typeof svc> = {};
+    if (replicaDelta !== 0) updates.replicas = newReplicas;
+    if (newCpu !== undefined) updates.cpuLimit = Math.max(10, newCpu);
+    if (newMem !== undefined) updates.memoryLimit = Math.max(16, newMem);
+
+    if (Object.keys(updates).length > 0) {
+      await updateService(svcId, updates);
+    }
   };
 
   return (
@@ -79,8 +91,9 @@ export default function ResourcesPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all" className="font-semibold text-primary">Global (All Pipelines)</SelectItem>
-              {pipelines.map(a => (
+              <SelectItem value="all" className="font-semibold text-primary">All Services</SelectItem>
+              <SelectItem value="global" className="font-semibold text-secondary">Global Services Only</SelectItem>
+              {activePipelines.map(a => (
                 <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
               ))}
             </SelectContent>
@@ -99,7 +112,6 @@ export default function ResourcesPage() {
               <TableHead className="text-[10px] font-mono uppercase w-8">Status</TableHead>
               <TableHead className="text-[10px] font-mono uppercase">Service</TableHead>
               <TableHead className="text-[10px] font-mono uppercase">Pipeline</TableHead>
-              <TableHead className="text-[10px] font-mono uppercase">Priority</TableHead>
               <TableHead className="text-[10px] font-mono uppercase text-center">Replicas</TableHead>
               <TableHead className="text-[10px] font-mono uppercase">CPU</TableHead>
               <TableHead className="text-[10px] font-mono uppercase">Memory</TableHead>
@@ -116,7 +128,6 @@ export default function ResourcesPage() {
                 <TableCell><StatusDot status={svc.status} pulse /></TableCell>
                 <TableCell className="font-mono font-medium">{svc.name}</TableCell>
                 <TableCell className="text-muted-foreground">{svc.pipelineName}</TableCell>
-                <TableCell><PriorityBadge priority={svc.pipelinePriority as any} /></TableCell>
                 <TableCell>
                   <div className="flex items-center justify-center gap-1">
                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleScale(svc.id, -1)}>
@@ -128,8 +139,28 @@ export default function ResourcesPage() {
                     </Button>
                   </div>
                 </TableCell>
-                <TableCell className="font-mono text-muted-foreground">{svc.cpuLimit}</TableCell>
-                <TableCell className="font-mono text-muted-foreground">{svc.memoryLimit}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1 w-20">
+                    <Input
+                      type="number"
+                      defaultValue={svc.cpuLimit}
+                      onBlur={(e) => handleScale(svc.id, 0, Number(e.target.value), undefined)}
+                      className="h-7 w-16 text-xs font-mono px-1.5"
+                    />
+                    <span className="text-[10px] text-muted-foreground font-mono">m</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1 w-20">
+                    <Input
+                      type="number"
+                      defaultValue={svc.memoryLimit}
+                      onBlur={(e) => handleScale(svc.id, 0, undefined, Number(e.target.value))}
+                      className="h-7 w-16 text-xs font-mono px-1.5"
+                    />
+                    <span className="text-[10px] text-muted-foreground font-mono">Mi</span>
+                  </div>
+                </TableCell>
                 <TableCell className="text-right">
                   <AlertDialog>
                     <AlertDialogTrigger asChild>

@@ -1,8 +1,8 @@
-export type Environment = 'prod' | 'dev';
+export type Environment = 'prod' | 'prep' | 'dev';
 export type Priority = 'normal' | 'high' | 'critical';
 export type ServiceStatus = 'healthy' | 'degraded' | 'lagging';
 export type Severity = 'critical' | 'warning' | 'info';
-export type MetricType = 'kafka_lag' | 'throughput' | 'cpu_usage' | 'memory_usage' | 'db_connections' | 'error_rate';
+export type MetricType = 'kafka_lag' | 'throughput' | 'cpu_usage' | 'memory_usage' | 'db_connections' | 'error_rate' | 'pending_tasks';
 export type ThemeMode = 'light' | 'dark' | 'midnight' | 'cyberpunk';
 
 export interface ResourceProfile {
@@ -34,6 +34,8 @@ export interface Pipeline {
   lastMessageAt?: string;
   totalCpuLimit: number;
   totalMemoryLimit: number;
+  activeIngress?: 'push-data' | 'kafka' | 'scheduler';
+  dlqCount?: number;
 }
 
 
@@ -46,6 +48,7 @@ export interface Service {
   cpuLimit: number; // storing millicores natively (e.g. 500)
   memoryLimit: number; // storing MiB natively (e.g. 1024)
   status: ServiceStatus;
+  stage?: 'source' | 'get-data' | 'python-validate' | 'transform' | 'sink' | 'support';
 }
 
 export interface MetricSnapshot {
