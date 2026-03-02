@@ -37,7 +37,7 @@ export default function PipelinesPage() {
     selectedPipelineId, setSelectedPipelineId, envFilter,
     updateService,
     createPipeline, deletePipeline,
-    createGroup, updateGroup
+    createGroup, updateGroup, deleteGroup
   } = useAppStore();
 
   const [search, setSearch] = useState('');
@@ -65,6 +65,9 @@ export default function PipelinesPage() {
 
   // Delete Pipeline State
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  // Delete Group State
+  const [groupToDelete, setGroupToDelete] = useState<{ id: string; name: string } | null>(null);
 
   const filteredPipelines = useMemo(() => {
     let result = pipelines;
@@ -571,6 +574,14 @@ export default function PipelinesPage() {
                                   ))}
                                 </SelectContent>
                               </Select>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                onClick={() => setGroupToDelete({ id: group.id, name: group.name })}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                             </div>
                           </div>
 
@@ -585,8 +596,8 @@ export default function PipelinesPage() {
                                       key={sp.id}
                                       onClick={() => handleToggleSecondary(group.id, sp.id, group.secondaryPipelineIds)}
                                       className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${isActive
-                                          ? 'bg-primary/15 border-primary/50 text-primary'
-                                          : 'bg-surface-1 border-border text-muted-foreground hover:border-primary/30'
+                                        ? 'bg-primary/15 border-primary/50 text-primary'
+                                        : 'bg-surface-1 border-border text-muted-foreground hover:border-primary/30'
                                         }`}
                                     >
                                       {sp.name}
@@ -601,6 +612,28 @@ export default function PipelinesPage() {
                     </div>
                   )}
                 </TabsContent>
+
+                {/* Delete Group Confirmation Dialog */}
+                <Dialog open={!!groupToDelete} onOpenChange={(open) => !open && setGroupToDelete(null)}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Delete Group: {groupToDelete?.name}</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4">
+                      <p className="text-sm text-muted-foreground">Are you sure you want to delete this owner group? This action cannot be undone.</p>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setGroupToDelete(null)}>Cancel</Button>
+                      <Button variant="destructive" onClick={async () => {
+                        if (groupToDelete) {
+                          await deleteGroup(groupToDelete.id);
+                          setGroupToDelete(null);
+                          toast.success('Group deleted');
+                        }
+                      }}>Delete</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
 
                 <TabsContent value="workloads" className="space-y-6">
                   {/* Individual Services */}
