@@ -7,7 +7,9 @@ export interface StorageFolder {
     id: string;
     name: string;
     icon: string;
+    customIconUrl?: string; // Optional user-uploaded image URL
     environmentId: string;
+    parentId?: string | null; // Optional parent folder for nesting
     createdAt: string;
 }
 
@@ -88,10 +90,27 @@ export const useStorageStore = create<StorageStore>()(
                 })),
 
             deleteFolder: (id) =>
-                set((state) => ({
-                    folders: state.folders.filter((f) => f.id !== id),
-                    items: state.items.filter((i) => i.folderId !== id), // cascade delete
-                })),
+                set((state) => {
+                    // Start with the folder to delete
+                    const folderIdsToDelete = new Set([id]);
+
+                    // Iteratively find all child folder IDs to delete
+                    let addedNew = true;
+                    while (addedNew) {
+                        addedNew = false;
+                        for (const folder of state.folders) {
+                            if (folder.parentId && folderIdsToDelete.has(folder.parentId) && !folderIdsToDelete.has(folder.id)) {
+                                folderIdsToDelete.add(folder.id);
+                                addedNew = true;
+                            }
+                        }
+                    }
+
+                    return {
+                        folders: state.folders.filter((f) => !folderIdsToDelete.has(f.id)),
+                        items: state.items.filter((i) => !folderIdsToDelete.has(i.folderId)),
+                    };
+                }),
 
             addItem: (item) =>
                 set((state) => ({

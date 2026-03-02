@@ -43,22 +43,33 @@ interface CreateFolderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   folderToEdit?: StorageFolder | null;
+  parentId?: string | null;
 }
 
-export function CreateFolderDialog({ open, onOpenChange, folderToEdit }: CreateFolderDialogProps) {
+export function CreateFolderDialog({ open, onOpenChange, folderToEdit, parentId }: CreateFolderDialogProps) {
   const { addFolder, updateFolder } = useStorageStore();
   const currentEnv = useAppStore(s => s.envFilter);
   
   const [name, setName] = useState(folderToEdit?.name || '');
   const [selectedIcon, setSelectedIcon] = useState(folderToEdit?.icon || 'Folder');
+  const [customIconUrl, setCustomIconUrl] = useState<string | null>(folderToEdit?.customIconUrl || null);
 
   // Reset form when opening to edit a different folder or creating new
   const handleOpenChange = (newOpen: boolean) => {
     if (newOpen) {
       setName(folderToEdit?.name || '');
       setSelectedIcon(folderToEdit?.icon || 'Folder');
+      setCustomIconUrl(folderToEdit?.customIconUrl || null);
     }
     onOpenChange(newOpen);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const objUrl = URL.createObjectURL(file);
+      setCustomIconUrl(objUrl);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -66,12 +77,18 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit }: CreateF
     if (!name.trim()) return;
 
     if (folderToEdit) {
-      updateFolder(folderToEdit.id, { name, icon: selectedIcon });
+      updateFolder(folderToEdit.id, { 
+        name, 
+        icon: selectedIcon,
+        customIconUrl: customIconUrl || undefined
+      });
     } else {
       addFolder({
         name,
         icon: selectedIcon,
+        customIconUrl: customIconUrl || undefined,
         environmentId: currentEnv,
+        parentId: parentId || null,
       });
     }
     onOpenChange(false);
@@ -97,7 +114,40 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit }: CreateF
             </div>
             
             <div className="grid gap-2">
-              <Label>Icon</Label>
+              <Label>Custom Icon Image</Label>
+              <div className="flex items-center gap-4">
+                {customIconUrl ? (
+                  <div className="relative h-12 w-12 rounded-lg border border-border overflow-hidden bg-muted group">
+                    <img src={customIconUrl} alt="Custom Icon" className="h-full w-full object-cover" />
+                    <button 
+                      type="button" 
+                      onClick={() => setCustomIconUrl(null)}
+                      className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Icons.X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="h-12 w-12 rounded-lg border border-dashed border-muted-foreground/50 flex items-center justify-center bg-muted/20">
+                    <Icons.Image className="h-5 w-5 text-muted-foreground/50" />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <Input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleImageUpload}
+                    className="text-xs" 
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1 text-right">Upload a logo or photo</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label className="flex justify-between items-center">
+                <span>Or select a standard icon</span>
+              </Label>
               <div className="grid grid-cols-6 gap-2">
                 {COMMON_ICONS.map((iconName) => {
                   const Icon = (Icons as any)[iconName];
@@ -106,9 +156,12 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit }: CreateF
                     <button
                       key={iconName}
                       type="button"
-                      onClick={() => setSelectedIcon(iconName)}
+                      onClick={() => {
+                        setSelectedIcon(iconName);
+                        setCustomIconUrl(null); // Clear custom if selecting a standard one
+                      }}
                       className={`p-2 flex items-center justify-center rounded-md border ${
-                        selectedIcon === iconName 
+                        selectedIcon === iconName && !customIconUrl
                           ? 'bg-primary text-primary-foreground border-primary' 
                           : 'bg-background hover:bg-muted border-input'
                       } transition-colors`}
