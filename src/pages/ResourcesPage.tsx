@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
 import { StatusDot, PriorityBadge } from '@/components/shared/StatusIndicators';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -11,21 +10,10 @@ import { Search, Plus, Minus, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
-export default function ResourcesPage() {
+export default function ServicesPage() {
   const { pipelines, services, updateService, envFilter } = useAppStore();
   const [search, setSearch] = useState('');
   const [rollingId, setRollingId] = useState<string | null>(null);
-  const [pipelineFilter, setPipelineFilter] = useState<string>('all');
-
-  // Default to Metro-pipeline if it exists
-  useEffect(() => {
-    if (pipelines.length > 0 && pipelineFilter === 'all') {
-      const metro = pipelines.find(p => p.name.toLowerCase() === 'metro-pipeline');
-      if (metro) {
-        setPipelineFilter(metro.id);
-      }
-    }
-  }, [pipelines, pipelineFilter]);
 
   // Filter Services
   const activePipelines = useMemo(() => {
@@ -41,15 +29,11 @@ export default function ResourcesPage() {
         pipelinePriority: s.pipelineId === 'global' ? 'high' : (pipelines.find(a => a.id === s.pipelineId)?.priority ?? 'normal'),
       }))
       .filter(s => {
-        if (pipelineFilter === 'all') return true;
-        return s.pipelineId === pipelineFilter;
-      })
-      .filter(s => {
         if (!search) return true;
         const q = search.toLowerCase();
         return s.name.toLowerCase().includes(q) || s.pipelineName.toLowerCase().includes(q);
       });
-  }, [services, pipelines, search, pipelineFilter, activePipelines]);
+  }, [services, pipelines, search, activePipelines]);
 
   const handleRestart = async (svcId: string) => {
     setRollingId(svcId);
@@ -83,78 +67,32 @@ export default function ResourcesPage() {
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold">Resource Management</h2>
+          <h2 className="text-lg font-semibold">Services</h2>
           <p className="text-xs text-muted-foreground font-mono">{filteredServices.length} services across {pipelines.length} pipelines</p>
         </div>
         <div className="flex items-center gap-3">
-          <Select value={pipelineFilter} onValueChange={setPipelineFilter}>
-            <SelectTrigger className="h-8 w-56 text-xs bg-surface-1">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" className="font-semibold text-primary">All Services</SelectItem>
-              <SelectItem value="global" className="font-semibold text-secondary">Global Services Only</SelectItem>
-              {activePipelines.map(a => (
-                <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
           <div className="relative w-64">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input placeholder="Filter services..." value={search} onChange={e => setSearch(e.target.value)} className="h-8 pl-8 text-xs bg-surface-1" />
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 text-xs h-8"
+            onClick={() => {
+              const allSvcs = services.filter(s => s.pipelineId !== 'global');
+              toast.info(`Restarting all services...`, { description: `Rolling restart of ${allSvcs.length} services across all pipelines.` });
+              allSvcs.forEach((svc, i) => {
+                setTimeout(() => updateService(svc.id, { status: 'degraded' }), i * 100);
+                setTimeout(() => updateService(svc.id, { status: 'healthy' }), 2000 + i * 100);
+              });
+            }}
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Restart All Services
+          </Button>
         </div>
       </div>
-
-      {(() => {
-        const globalSvcs = services.filter(s => s.pipelineId === 'global');
-        if (globalSvcs.length === 0 || (pipelineFilter !== 'all' && pipelineFilter !== 'global')) return null;
-
-        return (
-          <div className="space-y-3 pt-2">
-            <div className="flex items-center gap-2">
-              <Plus className="w-4 h-4 text-secondary rotate-45" />
-              <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider">Global Support & Auxiliary Components</h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {globalSvcs.map(svc => (
-                <motion.div
-                  key={svc.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="rounded-lg border border-secondary/20 bg-secondary/5 p-4 flex flex-col gap-3 shadow-sm hover:border-secondary/40 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <StatusDot status={svc.status} pulse />
-                      <span className="font-mono font-bold text-sm text-foreground">{svc.name}</span>
-                    </div>
-                    <Badge variant="outline" className="text-[9px] font-mono border-secondary/30 text-secondary bg-secondary/5">GLOBAL</Badge>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-muted-foreground font-mono">
-                    <div className="flex flex-col">
-                      <span className="uppercase text-[8px] opacity-70">Replicas</span>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => handleScale(svc.id, -1)}>
-                          <Minus className="h-2 w-2" />
-                        </Button>
-                        <span className="font-bold text-foreground w-4 text-center">{svc.replicas}</span>
-                        <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => handleScale(svc.id, 1)}>
-                          <Plus className="h-2 w-2" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className="uppercase text-[8px] opacity-70">Resources</span>
-                      <span className="mt-0.5">{svc.cpuLimit}m · {svc.memoryLimit}Mi</span>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        );
-      })()}
 
       <div className="rounded-lg border border-border bg-card overflow-hidden">
         <Table>

@@ -256,35 +256,52 @@ export default function PipelinesPage() {
                     )}
                   </div>
                 </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => {
+                      toast.info(`Restarting all ${selected.name} services...`, { description: `Rolling restart of ${pipelineServices.length} services initiated.` });
+                      pipelineServices.forEach((svc, i) => {
+                        setTimeout(() => updateService(svc.id, { status: 'degraded' }), i * 200);
+                        setTimeout(() => updateService(svc.id, { status: 'healthy' }), 2000 + i * 200);
+                      });
+                    }}
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    Restart Pipeline
+                  </Button>
 
-                <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="destructive" size="sm" className="gap-2">
-                      <Trash2 className="w-4 h-4" />
-                      Delete Pipeline
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Delete Pipeline: {selected.name}</DialogTitle>
-                    </DialogHeader>
-                    <div className="py-4">
-                      {pipelineGroups.length > 0 ? (
-                        <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-md text-sm">
-                          <strong>Warning:</strong> This pipeline has {pipelineGroups.length} associated owner group(s). You must move them to another pipeline or delete them before deleting this pipeline.
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">Are you sure you want to delete this pipeline? This action cannot be undone.</p>
-                      )}
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
-                      <Button variant="destructive" onClick={handleDeletePipeline} disabled={pipelineGroups.length > 0}>
-                        Confirm Delete
+                  <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="destructive" size="sm" className="gap-2">
+                        <Trash2 className="w-4 h-4" />
+                        Delete Pipeline
                       </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Delete Pipeline: {selected.name}</DialogTitle>
+                      </DialogHeader>
+                      <div className="py-4">
+                        {pipelineGroups.length > 0 ? (
+                          <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-md text-sm">
+                            <strong>Warning:</strong> This pipeline has {pipelineGroups.length} associated owner group(s). You must move them to another pipeline or delete them before deleting this pipeline.
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">Are you sure you want to delete this pipeline? This action cannot be undone.</p>
+                        )}
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
+                        <Button variant="destructive" onClick={handleDeletePipeline} disabled={pipelineGroups.length > 0}>
+                          Confirm Delete
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
 
               <Tabs defaultValue="overview" className="space-y-4">

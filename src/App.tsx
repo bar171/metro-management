@@ -8,7 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import PipelinesPage from "./pages/PipelinesPage";
 
 import MetricsPage from "./pages/MetricsPage";
-import ResourcesPage from "./pages/ResourcesPage";
+import ServicesPage from "./pages/ResourcesPage";
 import LivenessPage from "./pages/LivenessPage";
 import StoragePage from "./pages/StoragePage";
 import BlacklistPage from "./pages/BlacklistPage";
@@ -29,7 +29,7 @@ const App = () => (
             <Route path="/liveness" element={<LivenessPage />} />
             <Route path="/storage" element={<StoragePage />} />
             <Route path="/metrics" element={<MetricsPage />} />
-            <Route path="/resources" element={<ResourcesPage />} />
+            <Route path="/services" element={<ServicesPage />} />
             <Route path="/blacklist" element={<BlacklistPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
