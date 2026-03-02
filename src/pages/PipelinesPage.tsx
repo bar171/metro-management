@@ -309,6 +309,9 @@ export default function PipelinesPage() {
                             <marker id="arrow-red" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
                               <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" className="text-status-critical/80" />
                             </marker>
+                            <marker id="arrow-blue" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
+                              <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" className="text-blue-500/80" />
+                            </marker>
                           </defs>
 
                           {/* push-data -> python-validate */}
@@ -342,30 +345,31 @@ export default function PipelinesPage() {
                                 <path d="M 670 190 L 715 190 L 715 110 L 760 110" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
                               )}
 
-                              {/* Bypass: Validate -> Publish directly (underneath the transform nodes) */}
-                              <path d="M 670 190 L 715 190 L 715 240 L 955 240 L 955 190 L 1000 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                              {/* Bypass: Validate -> Common junction point before parallel split */}
+                              <path d="M 670 190 L 715 190 L 715 240 L 910 240 L 910 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" />
 
                               {/* External Transform Loop Back -> Python Validate */}
                               {pipelineServices.some(s => s.name === 'external-transform') && (
                                 <path d="M 835 80 L 835 40 L 595 40 L 595 154" stroke="currentColor" fill="none" strokeWidth="2" className="text-blue-500/60" markerEnd="url(#arrow-blue)" />
                               )}
 
-                              {/* Transform Data -> Publish */}
+                              {/* Transform Data -> Junction point */}
                               {pipelineServices.some(s => s.name === 'transform-data') && (
-                                <path d="M 910 190 L 1000 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                                <path d="M 910 190 L 910 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" />
                               )}
                             </>
                           ) : (
-                            /* Directly Validate -> Publish if no transform */
-                            <path d="M 670 190 L 1000 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                            /* Directly Validate -> Junction point if no transform */
+                            <path d="M 670 190 L 910 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" />
                           )}
 
                           {/* Python Validate -> Informative Validation (Invalid) */}
                           <path d="M 595 220 L 595 274" stroke="currentColor" fill="none" strokeWidth="2" className="text-status-critical/60" markerEnd="url(#arrow-red)" />
                           <text x="605" y="250" className="text-[10px] fill-status-critical/80 font-mono font-bold tracking-widest">INVALID</text>
 
-                          {/* Publish -> Sink Data */}
-                          <path d="M 1150 190 L 1240 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                          {/* Parallel Split from Junction Point (910, 190) */}
+                          <path d="M 910 190 L 955 190 L 955 110 L 1000 110" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
+                          <path d="M 910 190 L 955 190 L 955 270 L 1000 270" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
                         </svg>
 
                         {/* Rendering Nodes Helper */}
@@ -464,7 +468,6 @@ export default function PipelinesPage() {
                               </Popover>
                             );
                           };
-
                           return (
                             <>
                               {/* Sources */}
@@ -486,54 +489,9 @@ export default function PipelinesPage() {
                                 </>
                               )}
 
-                              {/* Publish */}
-                              {renderNode('publish', 1000, 160)}
-
-                              {/* Sink */}
-                              {renderNode('sink-data', 1240, 160)}
-
-                              {/* Support Block Outline */}
-                              <div className="absolute left-[20px] w-[1400px] top-[450px] h-[80px] border-2 border-dashed border-border/40 bg-surface-1/20 rounded-xl" />
-                              <div className="absolute left-[36px] top-[441px] text-[10px] font-mono font-bold tracking-widest uppercase text-muted-foreground bg-card px-2">Global Support & Auxiliary Components</div>
-
-                              {/* Render global helper */}
-                              {(() => {
-                                const renderGlobalNode = (name: string, x: number, y: number) => {
-                                  // Find global service mapping (scheduler is here because it was listed as global)
-                                  // Wait, scheduler is already rendered above in 'Sources'!
-                                  // Let's just use the services list to find them globally.
-                                  const svc = services.find(s => s.name === name && s.pipelineId === 'global');
-                                  return (
-                                    <div
-                                      key={name}
-                                      className={`absolute rounded-md border flex flex-col justify-center gap-1.5 p-2
-                                        ${svc ? (svc.status === 'degraded' ? 'bg-status-critical/10 border-status-critical/50 shadow-[0_0_15px_rgba(255,0,0,0.15)]' :
-                                          svc.status === 'lagging' ? 'bg-status-warning/10 border-status-warning/50' :
-                                            'bg-card border-border shadow-sm') : 'bg-surface-1/30 border-dashed border-border/50 opacity-60'} z-10 transition-colors hover:border-primary/50`}
-                                      style={{ left: x, top: y, width: 150, height: 60 }}
-                                    >
-                                      <div className="flex items-center gap-2">
-                                        {svc ? <StatusDot status={svc.status} pulse /> : <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />}
-                                        <span className="font-mono text-[11px] font-bold truncate text-foreground" title={name}>{name}</span>
-                                      </div>
-                                      {svc && (
-                                        <div className="flex items-center justify-between text-[9px] text-muted-foreground font-mono">
-                                          <span>{svc.replicas} pods</span>
-                                          <span className="text-secondary">GLOBAL</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                };
-
-                                return (
-                                  <>
-                                    {renderGlobalNode('metronitor', 40, 460)}
-                                    {renderGlobalNode('pipeline-creator', 210, 460)}
-                                    {renderGlobalNode('metro-metrics', 380, 460)}
-                                  </>
-                                );
-                              })()}
+                              {/* Publish & Sink (Parallel) */}
+                              {renderNode('publish', 1000, 80)}
+                              {renderNode('sink-data', 1000, 240)}
                             </>
                           );
                         })()}
@@ -714,6 +672,6 @@ export default function PipelinesPage() {
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </div >
   );
 }

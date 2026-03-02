@@ -1,7 +1,8 @@
 import { create } from 'zustand';
-import type { Pipeline, Service, ResourceProfile, MetricSnapshot, LogEntry, ThemeMode, Group, BackfillRequest } from '@/types';
+import type { Pipeline, Service, ResourceProfile, MetricSnapshot, LogEntry, ThemeMode, Group, BackfillRequest, BlacklistEntry } from '@/types';
 import { pipelineOrm, serviceOrm, resourceProfileOrm, metricOrm, logOrm, groupOrm } from '@/lib/mockOrm';
 import { mockBackfillApi } from '@/lib/backfill';
+import { mockBlacklistApi } from '@/lib/blacklist';
 
 interface AppState {
   // Theme
@@ -20,6 +21,7 @@ interface AppState {
   resourceProfiles: ResourceProfile[];
   metrics: MetricSnapshot[];
   logs: LogEntry[];
+  blacklistEntries: BlacklistEntry[];
   loading: boolean;
 
   // Selected
@@ -42,6 +44,12 @@ interface AppState {
   appendMetric: (data: Omit<MetricSnapshot, 'id'>) => Promise<void>;
   appendLog: (data: Omit<LogEntry, 'id'>) => Promise<void>;
   broadBackfill: (request: BackfillRequest) => Promise<void>;
+
+  // Blacklist
+  loadBlacklist: () => Promise<void>;
+  toggleBlacklist: (id: string) => Promise<void>;
+  addBlacklist: (data: Omit<BlacklistEntry, 'id' | 'createdAt' | 'active'>) => Promise<void>;
+  deleteBlacklist: (id: string) => Promise<void>;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -51,7 +59,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ theme });
   },
 
-  envFilter: 'all',
+  envFilter: 'dev',
   setEnvFilter: (envFilter) => set({ envFilter }),
 
   pipelines: [],
@@ -61,6 +69,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   resourceProfiles: [],
   metrics: [],
   logs: [],
+  blacklistEntries: [],
   loading: true,
 
   selectedPipelineId: null,
@@ -68,7 +77,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   loadAll: async () => {
     set({ loading: true });
-    const [pipelines, groups, services, resourceProfiles, metrics, logs] = await Promise.all([
+    const [pipelines, groups, services, resourceProfiles, metrics, logs, blacklistEntries] = await Promise.all([
       pipelineOrm.findMany(),
 
       groupOrm.findMany(),
@@ -76,8 +85,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       resourceProfileOrm.findMany(),
       metricOrm.findMany(),
       logOrm.findMany({ limit: 100 }),
+      mockBlacklistApi.fetchEntries(),
     ]);
-    set({ pipelines, groups, services, resourceProfiles, metrics, logs, loading: false });
+    set({ pipelines, groups, services, resourceProfiles, metrics, logs, blacklistEntries, loading: false });
   },
 
   refreshMetrics: async () => {
@@ -179,5 +189,28 @@ export const useAppStore = create<AppState>((set, get) => ({
       // In a real app we might update some state here
       console.log(`Backfill request ${response.requestId} submitted.`);
     }
+  },
+
+  loadBlacklist: async () => {
+    const entries = await mockBlacklistApi.fetchEntries();
+    set({ blacklistEntries: entries });
+  },
+
+  toggleBlacklist: async (id) => {
+    await mockBlacklistApi.toggleEntry(id);
+    const entries = await mockBlacklistApi.fetchEntries();
+    set({ blacklistEntries: entries });
+  },
+
+  addBlacklist: async (data) => {
+    await mockBlacklistApi.addEntry(data);
+    const entries = await mockBlacklistApi.fetchEntries();
+    set({ blacklistEntries: entries });
+  },
+
+  deleteBlacklist: async (id) => {
+    await mockBlacklistApi.deleteEntry(id);
+    const entries = await mockBlacklistApi.fetchEntries();
+    set({ blacklistEntries: entries });
   },
 }));

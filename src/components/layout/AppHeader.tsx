@@ -20,15 +20,7 @@ export function AppHeader() {
     <header className="h-12 flex items-center gap-3 px-3 border-b border-border bg-card/50 backdrop-blur-sm shrink-0">
       <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
 
-      <div className="flex-1 flex items-center gap-3">
-        <div className="relative max-w-xs flex-1">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input
-            placeholder="Search pipelines, owner groups..."
-            className="h-8 pl-8 text-xs bg-surface-1 border-border"
-          />
-        </div>
-      </div>
+      <div className="flex-1" />
 
       <div className="flex items-center gap-4">
 
@@ -37,7 +29,6 @@ export function AppHeader() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Envs</SelectItem>
             <SelectItem value="prod">Prod</SelectItem>
             <SelectItem value="prep">Prep</SelectItem>
             <SelectItem value="dev">Dev</SelectItem>

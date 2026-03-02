@@ -75,3 +75,13 @@ export interface BackfillRequest {
   deltaMs: number;
   queryIntervalMs: number;
 }
+
+export interface BlacklistEntry {
+  id: string;
+  pipelineId: string;
+  targetType: 'source' | 'destination' | 'broker' | 'pipeline';
+  targetValue: string; // sourceId, destinationId (with type prefix), or broker address
+  reason: string;
+  createdAt: string;
+  active: boolean;
+}

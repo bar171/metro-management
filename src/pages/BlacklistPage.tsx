@@ -1,0 +1,313 @@
+import React, { useState, useEffect } from 'react';
+import { useAppStore } from '@/stores/useAppStore';
+import {
+    ShieldAlert,
+    Plus,
+    Trash2,
+    AlertCircle,
+    Search,
+    Filter,
+    CheckCircle2,
+    XCircle,
+    ArrowRight
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
+import { StatusDot } from '@/components/shared/StatusIndicators';
+
+const BlacklistPage = () => {
+    const {
+        blacklistEntries,
+        pipelines,
+        services,
+        loadBlacklist,
+        toggleBlacklist,
+        addBlacklist,
+        deleteBlacklist,
+        loading
+    } = useAppStore();
+
+    const [search, setSearch] = useState('');
+    const [dialogOpen, setDialogOpen] = useState<null | 'source' | 'destination' | 'broker'>(null);
+    const [formData, setFormData] = useState({
+        pipelineId: '',
+        targetValue: '',
+        reason: ''
+    });
+
+    useEffect(() => {
+        loadBlacklist();
+    }, [loadBlacklist]);
+
+    const filteredEntries = blacklistEntries.filter(entry =>
+        entry.reason.toLowerCase().includes(search.toLowerCase()) ||
+        entry.pipelineId.toLowerCase().includes(search.toLowerCase()) ||
+        entry.targetValue.toLowerCase().includes(search.toLowerCase())
+    );
+
+    const handleAddEntry = async (type: 'source' | 'destination' | 'broker' | 'pipeline') => {
+        if (!formData.reason || !formData.targetValue || (type !== 'broker' && !formData.pipelineId)) {
+            toast.error('Please fill in all required fields');
+            return;
+        }
+
+        try {
+            await addBlacklist({
+                pipelineId: type === 'broker' ? 'all' : formData.pipelineId,
+                targetType: type,
+                targetValue: formData.targetValue,
+                reason: formData.reason
+            });
+            setDialogOpen(null);
+            setFormData({ pipelineId: '', targetValue: '', reason: '' });
+            toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} block deployed`);
+        } catch (error) {
+            toast.error('Failed to deploy block');
+        }
+    };
+
+    const selectedPipelineServices = services.filter(s => s.pipelineId === formData.pipelineId);
+    const sources = selectedPipelineServices.filter(s => s.stage === 'source');
+    const destinations = selectedPipelineServices.filter(s => s.stage === 'sink');
+
+    return (
+        <div className="p-6 space-y-6 max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+                        <ShieldAlert className="h-6 w-6 text-status-critical" />
+                        Blacklist Admin
+                    </h1>
+                    <p className="text-muted-foreground">
+                        Direct incident response: immediate blocks for sources, destinations, and infrastructure.
+                    </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <Dialog open={dialogOpen === 'source'} onOpenChange={(open) => !open && setDialogOpen(null)}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline" className="gap-2 border-status-warning/50 hover:bg-status-warning/10" onClick={() => setDialogOpen('source')}>
+                                <Plus className="h-4 w-4" /> Source Stop
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Block Source</DialogTitle>
+                                <DialogDescription>Select a specific source to halt ingress.</DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Pipeline</label>
+                                    <Select onValueChange={(v) => setFormData({ ...formData, pipelineId: v, targetValue: '' })}>
+                                        <SelectTrigger><SelectValue placeholder="Select Pipeline" /></SelectTrigger>
+                                        <SelectContent>{pipelines.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Source ID</label>
+                                    <Select disabled={!formData.pipelineId} onValueChange={(v) => setFormData({ ...formData, targetValue: v })}>
+                                        <SelectTrigger><SelectValue placeholder="Select Source" /></SelectTrigger>
+                                        <SelectContent>{sources.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Reason</label>
+                                    <Textarea value={formData.reason} onChange={(e) => setFormData({ ...formData, reason: e.target.value })} placeholder="Incident ID or reason..." />
+                                </div>
+                            </div>
+                            <DialogFooter><Button onClick={() => handleAddEntry('source')}>Deploy Block</Button></DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                    <Dialog open={dialogOpen === 'destination'} onOpenChange={(open) => !open && setDialogOpen(null)}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline" className="gap-2 border-status-critical/50 hover:bg-status-critical/10" onClick={() => setDialogOpen('destination')}>
+                                <Plus className="h-4 w-4" /> Destination Stop
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Block Destination</DialogTitle>
+                                <DialogDescription>Stop all traffic to a specific sink.</DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Pipeline</label>
+                                    <Select onValueChange={(v) => setFormData({ ...formData, pipelineId: v, targetValue: '' })}>
+                                        <SelectTrigger><SelectValue placeholder="Select Pipeline" /></SelectTrigger>
+                                        <SelectContent>{pipelines.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Destination</label>
+                                    <Select disabled={!formData.pipelineId} onValueChange={(v) => setFormData({ ...formData, targetValue: v })}>
+                                        <SelectTrigger><SelectValue placeholder="Select Sink" /></SelectTrigger>
+                                        <SelectContent>{destinations.map(s => <SelectItem key={s.id} value={`kafka:${s.name}`}>{s.name} (Kafka)</SelectItem>)}</SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Reason</label>
+                                    <Textarea value={formData.reason} onChange={(e) => setFormData({ ...formData, reason: e.target.value })} placeholder="Critical failure details..." />
+                                </div>
+                            </div>
+                            <DialogFooter><Button onClick={() => handleAddEntry('destination')}>Deploy Block</Button></DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                    <Dialog open={dialogOpen === 'broker'} onOpenChange={(open) => !open && setDialogOpen(null)}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline" className="gap-2 border-primary/50 hover:bg-primary/10" onClick={() => setDialogOpen('broker')}>
+                                <Plus className="h-4 w-4" /> Global Broker Block
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Isolate Kafka Broker</DialogTitle>
+                                <DialogDescription>Block all connections to a specific broker across all pipelines.</DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Broker Alias / Address</label>
+                                    <Select onValueChange={(v) => setFormData({ ...formData, targetValue: v })}>
+                                        <SelectTrigger><SelectValue placeholder="Select Known Broker" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="kafka-broker-01.metro.svc:9092">Broker 01 (Primary)</SelectItem>
+                                            <SelectItem value="kafka-broker-02.metro.svc:9092">Broker 02 (Secondary)</SelectItem>
+                                            <SelectItem value="kafka-broker-audit.metro.svc:9092">Audit Cluster Broker</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Reason</label>
+                                    <Textarea value={formData.reason} onChange={(e) => setFormData({ ...formData, reason: e.target.value })} placeholder="Maintenance or failure isolation reason..." />
+                                </div>
+                            </div>
+                            <DialogFooter><Button onClick={() => handleAddEntry('broker')}>Isolate Broker</Button></DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+            </div>
+
+            <div className="bg-card border rounded-lg p-4 shadow-sm flex items-center gap-4">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input placeholder="Filter blocks..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+                </div>
+            </div>
+
+            <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
+                <Table>
+                    <TableHeader className="bg-muted/50">
+                        <TableRow>
+                            <TableHead>Scope</TableHead>
+                            <TableHead>Target Type</TableHead>
+                            <TableHead>Identifier</TableHead>
+                            <TableHead>Reason</TableHead>
+                            <TableHead>Timestamp</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <AnimatePresence mode="popLayout">
+                            {filteredEntries.map((entry) => (
+                                <motion.tr key={entry.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="group hover:bg-muted/30">
+                                    <TableCell className="font-semibold">
+                                        {entry.pipelineId === 'all' ? <Badge variant="outline" className="text-primary border-primary/30">GLOBAL</Badge> : pipelines.find(p => p.id === entry.pipelineId)?.name}
+                                    </TableCell>
+                                    <TableCell><Badge variant="secondary" className="capitalize">{entry.targetType}</Badge></TableCell>
+                                    <TableCell><code className="text-[10px] font-mono">{entry.targetValue}</code></TableCell>
+                                    <TableCell className="max-w-xs truncate text-muted-foreground" title={entry.reason}>{entry.reason}</TableCell>
+                                    <TableCell className="text-[10px] text-muted-foreground">{new Date(entry.createdAt).toLocaleString()}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button variant="ghost" size="icon" className="hover:text-status-critical" onClick={() => { deleteBlacklist(entry.id); toast.error('Block removed'); }}>
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </TableCell>
+                                </motion.tr>
+                            ))}
+                        </AnimatePresence>
+                        {filteredEntries.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <AlertCircle className="h-8 w-8 text-muted-foreground/30" />
+                                        <span>No active blocks found.</span>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                <div className="p-4 rounded-lg border border-status-critical/20 bg-status-critical/5 flex items-start gap-3 shadow-sm">
+                    <div className="p-2 rounded-full bg-status-critical/10 text-status-critical">
+                        <XCircle className="h-5 w-5" />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-semibold">Stops & Blocks</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                            Active blacklist rules force immediately stopping data transmission to prevents downstream impact.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="p-4 rounded-lg border border-status-warning/20 bg-status-warning/5 flex items-start gap-3 shadow-sm">
+                    <div className="p-2 rounded-full bg-status-warning/10 text-status-warning">
+                        <AlertCircle className="h-5 w-5" />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-semibold">Incident Response</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                            Use blacklists for rapid isolation during data corruption or infrastructure failure incidents.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="p-4 rounded-lg border border-primary/20 bg-primary/5 flex items-start gap-3 shadow-sm">
+                    <div className="p-2 rounded-full bg-primary/10 text-primary">
+                        <CheckCircle2 className="h-5 w-5" />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-semibold">Audit Ready</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                            All entries are logged with creator and reason to maintain compliance and transparency.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div >
+    );
+};
+
+export default BlacklistPage;

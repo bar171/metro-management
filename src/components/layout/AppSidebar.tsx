@@ -7,6 +7,7 @@ import {
   ScrollText,
   HeartPulse,
   Wrench,
+  ShieldAlert,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
@@ -31,6 +32,7 @@ const navItems = [
   { title: 'Metrics', url: '/metrics', icon: BarChart3 },
   { title: 'Resources', url: '/resources', icon: Server },
   { title: 'Pipeline Creator', url: '/pipeline-creator', icon: Wrench },
+  { title: 'Blacklist Admin', url: '/blacklist', icon: ShieldAlert },
 ];
 
 export function AppSidebar() {

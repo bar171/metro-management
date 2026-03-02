@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Search, Plus, Minus, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -104,6 +105,56 @@ export default function ResourcesPage() {
           </div>
         </div>
       </div>
+
+      {(() => {
+        const globalSvcs = services.filter(s => s.pipelineId === 'global');
+        if (globalSvcs.length === 0 || (pipelineFilter !== 'all' && pipelineFilter !== 'global')) return null;
+
+        return (
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center gap-2">
+              <Plus className="w-4 h-4 text-secondary rotate-45" />
+              <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider">Global Support & Auxiliary Components</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {globalSvcs.map(svc => (
+                <motion.div
+                  key={svc.id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="rounded-lg border border-secondary/20 bg-secondary/5 p-4 flex flex-col gap-3 shadow-sm hover:border-secondary/40 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <StatusDot status={svc.status} pulse />
+                      <span className="font-mono font-bold text-sm text-foreground">{svc.name}</span>
+                    </div>
+                    <Badge variant="outline" className="text-[9px] font-mono border-secondary/30 text-secondary bg-secondary/5">GLOBAL</Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-muted-foreground font-mono">
+                    <div className="flex flex-col">
+                      <span className="uppercase text-[8px] opacity-70">Replicas</span>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => handleScale(svc.id, -1)}>
+                          <Minus className="h-2 w-2" />
+                        </Button>
+                        <span className="font-bold text-foreground w-4 text-center">{svc.replicas}</span>
+                        <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => handleScale(svc.id, 1)}>
+                          <Plus className="h-2 w-2" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="uppercase text-[8px] opacity-70">Resources</span>
+                      <span className="mt-0.5">{svc.cpuLimit}m · {svc.memoryLimit}Mi</span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="rounded-lg border border-border bg-card overflow-hidden">
         <Table>
