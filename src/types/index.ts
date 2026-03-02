@@ -19,7 +19,6 @@ export interface Group {
   primaryPipelineId: string;
   secondaryPipelineIds: string[];
   etlDailyTransportMaxSizeGb: number;
-  lastActive: string;
 }
 
 export type PipelineType = 'BASIC' | 'STREAM' | 'BACKFILL';

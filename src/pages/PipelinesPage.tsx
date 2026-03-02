@@ -210,7 +210,14 @@ export default function PipelinesPage() {
               >
                 <div className="mt-1"><StatusDot status={getPipelineHealth(pipeline.id)} pulse /></div>
                 <div className="flex-1 min-w-0 space-y-1.5">
-                  <div className="text-sm font-medium truncate">{pipeline.name}</div>
+                  <div className="text-sm font-medium truncate flex justify-between items-center gap-2">
+                    {pipeline.name}
+                    {groupsForPipe.length > 0 && (
+                      <span className="text-[10px] bg-muted-foreground/10 text-muted-foreground px-1.5 py-0.5 rounded-full font-mono">
+                        {groupsForPipe.length}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center flex-wrap gap-1.5 mt-0.5">
                     <TypeBadge type={pipeline.type} />
                     <PriorityBadge priority={pipeline.priority} />
@@ -288,7 +295,7 @@ export default function PipelinesPage() {
                       <div className="py-4">
                         {pipelineGroups.length > 0 ? (
                           <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-md text-sm">
-                            <strong>Warning:</strong> This pipeline has {pipelineGroups.length} associated owner group(s). You must move them to another pipeline or delete them before deleting this pipeline.
+                            <strong>Warning:</strong> This pipeline has {pipelineGroups.length} associated group(s). You must move them to another pipeline or delete them before deleting this pipeline.
                           </div>
                         ) : (
                           <p className="text-sm text-muted-foreground">Are you sure you want to delete this pipeline? This action cannot be undone.</p>
@@ -308,7 +315,11 @@ export default function PipelinesPage() {
               <Tabs defaultValue="overview" className="space-y-4">
                 <TabsList className="bg-surface-1">
                   <TabsTrigger value="overview" className="text-xs gap-1.5"><Server className="h-3.5 w-3.5" />Overview</TabsTrigger>
-                  <TabsTrigger value="groups" className="text-xs gap-1.5"><Users className="h-3.5 w-3.5" />Owner Groups</TabsTrigger>
+                  <TabsTrigger value="groups" className="text-xs gap-1.5">
+                    <Users className="h-3.5 w-3.5" />
+                    Groups
+                    <span className="ml-1 text-[10px] opacity-60 font-mono">({pipelineGroups.length})</span>
+                  </TabsTrigger>
                   <TabsTrigger value="workloads" className="text-xs gap-1.5"><Settings2 className="h-3.5 w-3.5" />Workloads</TabsTrigger>
                 </TabsList>
 
@@ -323,7 +334,7 @@ export default function PipelinesPage() {
                       <p className="font-mono mt-1">{selected.databaseInstance}</p>
                     </div>
                     <div className="rounded-lg border border-border bg-card p-3 flex flex-col justify-center">
-                      <span className="text-muted-foreground font-mono text-[10px] uppercase">Owner Groups</span>
+                      <span className="text-muted-foreground font-mono text-[10px] uppercase">Groups</span>
                       <p className="font-mono mt-1">{pipelineGroups.length}</p>
                     </div>
 
@@ -537,14 +548,19 @@ export default function PipelinesPage() {
 
                 <TabsContent value="groups" className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium">Pipeline Owner Groups</h3>
+                    <h3 className="text-sm font-medium flex items-center gap-2">
+                      Pipeline Groups
+                      <span className="text-xs text-muted-foreground font-mono bg-muted/50 px-2 py-0.5 rounded-full">
+                        Total: {pipelineGroups.length}
+                      </span>
+                    </h3>
                     <Dialog open={isCreateGroupOpen} onOpenChange={setIsCreateGroupOpen}>
                       <DialogTrigger asChild>
                         <Button size="sm" className="gap-2"><Plus className="w-3.5 h-3.5" /> Add Group</Button>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>Assign New Owner Group</DialogTitle>
+                          <DialogTitle>Assign New Group</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                           <div className="space-y-2">
@@ -571,9 +587,6 @@ export default function PipelinesPage() {
                           <div className="flex items-center justify-between">
                             <div>
                               <div className="font-medium">{group.name}</div>
-                              <div className="text-[10px] text-muted-foreground font-mono mt-1">
-                                Last active: {new Date(group.lastActive).toUTCString()}
-                              </div>
                             </div>
                             <div className="flex items-center gap-3">
                               <Select
@@ -608,19 +621,17 @@ export default function PipelinesPage() {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono uppercase tracking-wider">
                                 <HardDrive className="w-3 h-3" />
-                                ETL Daily Transport Max Size
+                                Daily Max Backfilled Data
                               </div>
-                              <span className="text-xs font-mono font-bold text-primary">{group.etlDailyTransportMaxSizeGb} GB</span>
-                            </div>
-                            <div className="flex items-center gap-4">
-                              <Slider
-                                value={[group.etlDailyTransportMaxSizeGb]}
-                                min={1}
-                                max={100}
-                                step={1}
-                                className="flex-1"
-                                onValueChange={([val]) => updateGroup(group.id, { etlDailyTransportMaxSizeGb: val })}
-                              />
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="number"
+                                  value={group.etlDailyTransportMaxSizeGb}
+                                  onChange={e => updateGroup(group.id, { etlDailyTransportMaxSizeGb: Number(e.target.value) })}
+                                  className="h-7 w-20 text-xs font-mono px-2 bg-surface-1"
+                                />
+                                <span className="text-[10px] text-muted-foreground font-mono uppercase">GB</span>
+                              </div>
                             </div>
                           </div>
 
@@ -634,10 +645,10 @@ export default function PipelinesPage() {
                                     <button
                                       key={sp.id}
                                       onClick={() => handleToggleSecondary(group.id, sp.id, group.secondaryPipelineIds)}
-                                      className={`px - 3 py - 1.5 rounded - md text - xs font - medium border transition - all ${isActive
-                                          ? 'bg-primary/15 border-primary/50 text-primary'
-                                          : 'bg-surface-1 border-border text-muted-foreground hover:border-primary/30'
-                                        } `}
+                                      className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${isActive
+                                        ? 'bg-primary/15 border-primary/50 text-primary'
+                                        : 'bg-surface-1 border-border text-muted-foreground hover:border-primary/30'
+                                        }`}
                                     >
                                       {sp.name}
                                     </button>

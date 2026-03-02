@@ -86,8 +86,7 @@ export function generateGroups(pipelines: Pipeline[]): Group[] {
     secondaryPipelineIds: i % 3 === 0 && secondaryPipelines.length > 0
       ? [secondaryPipelines[i % secondaryPipelines.length].id]
       : [],
-    etlDailyTransportMaxSizeGb: 15,
-    lastActive: new Date(Date.now() - Math.floor(Math.random() * 86400000)).toISOString()
+    etlDailyTransportMaxSizeGb: 15
   }));
 }
 
