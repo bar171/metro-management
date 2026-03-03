@@ -9,6 +9,7 @@ export interface StorageFolder {
     icon: string;
     customIconUrl?: string; // Optional user-uploaded image URL
     color?: string; // Optional background/border tint
+    isGlobal?: boolean; // Determines if the folder ignores environmentId
     environmentId: string;
     parentId?: string | null; // Optional parent folder for nesting
     createdAt: string;
@@ -16,7 +17,7 @@ export interface StorageFolder {
 
 export interface StorageItem {
     id: string;
-    folderId: string;
+    folderId: string | null;
     type: StorageItemType;
     name: string;
     url: string; // URL for links, data/blob URL for simulated files, or external link
@@ -30,6 +31,7 @@ export interface StorageItem {
 interface StorageStore {
     folders: StorageFolder[];
     items: StorageItem[];
+    clipboard: { type: 'folder' | 'item'; id: string } | null;
 
     // Actions
     addFolder: (folder: Omit<StorageFolder, 'id' | 'createdAt'>) => void;
@@ -39,6 +41,14 @@ interface StorageStore {
     addItem: (item: Omit<StorageItem, 'id' | 'createdAt'>) => void;
     updateItem: (id: string, updates: Partial<StorageItem>) => void;
     deleteItem: (id: string) => void;
+
+    // Bulk Actions
+    bulkDelete: (folderIds: string[], itemIds: string[]) => void;
+    moveItems: (folderIds: string[], itemIds: string[], targetParentId: string | null) => void;
+    // Clipboard Actions
+    setClipboard: (type: 'folder' | 'item', id: string) => void;
+    clearClipboard: () => void;
+    paste: (targetParentId: string | null) => void;
 }
 
 export const useStorageStore = create<StorageStore>()(
@@ -73,6 +83,7 @@ export const useStorageStore = create<StorageStore>()(
                     description: 'Local Kafka cluster dashboard',
                 }
             ],
+            clipboard: null,
 
             addFolder: (folder) =>
                 set((state) => ({
@@ -135,6 +146,104 @@ export const useStorageStore = create<StorageStore>()(
                 set((state) => ({
                     items: state.items.filter((i) => i.id !== id),
                 })),
+
+            bulkDelete: (folderIds, itemIds) =>
+                set((state) => {
+                    const folderIdsToDelete = new Set(folderIds);
+                    let addedNew = true;
+
+                    // Recursively collect all nested folder IDs
+                    while (addedNew) {
+                        addedNew = false;
+                        for (const folder of state.folders) {
+                            if (folder.parentId && folderIdsToDelete.has(folder.parentId) && !folderIdsToDelete.has(folder.id)) {
+                                folderIdsToDelete.add(folder.id);
+                                addedNew = true;
+                            }
+                        }
+                    }
+
+                    return {
+                        folders: state.folders.filter((f) => !folderIdsToDelete.has(f.id)),
+                        items: state.items.filter((i) => !folderIdsToDelete.has(i.folderId) && !itemIds.includes(i.id)),
+                    };
+                }),
+
+            moveItems: (folderIds, itemIds, targetParentId) =>
+                set((state) => ({
+                    folders: state.folders.map(f =>
+                        folderIds.includes(f.id) ? { ...f, parentId: targetParentId } : f
+                    ),
+                    items: state.items.map(i =>
+                        itemIds.includes(i.id) ? { ...i, folderId: targetParentId } : i
+                    )
+                })),
+
+            setClipboard: (type, id) => set({ clipboard: { type, id } }),
+            clearClipboard: () => set({ clipboard: null }),
+
+            paste: (targetParentId) =>
+                set((state) => {
+                    if (!state.clipboard) return state;
+
+                    const newFolders = [...state.folders];
+                    const newItems = [...state.items];
+
+                    if (state.clipboard.type === 'item') {
+                        const itemToCopy = state.items.find(i => i.id === state.clipboard!.id);
+                        if (itemToCopy) {
+                            newItems.push({
+                                ...itemToCopy,
+                                id: crypto.randomUUID(),
+                                folderId: targetParentId, // Assign to new parent
+                                name: `${itemToCopy.name} (Copy)`,
+                                createdAt: new Date().toISOString()
+                            });
+                        }
+                    } else if (state.clipboard.type === 'folder') {
+                        const folderToCopy = state.folders.find(f => f.id === state.clipboard!.id);
+                        if (folderToCopy) {
+                            // Helper to recursively copy a folder
+                            const copyFolderRecursive = (originalFolderId: string, currentTargetParentId: string | null, isFirstLevel: boolean = false) => {
+                                const originalFolder = state.folders.find(f => f.id === originalFolderId);
+                                if (!originalFolder) return;
+
+                                const newFolderId = crypto.randomUUID();
+                                // Only append (Copy) to the topmost parent being pasted, keep exact names for deeply nested inner files
+                                const newFolderName = isFirstLevel ? `${originalFolder.name} (Copy)` : originalFolder.name;
+
+                                newFolders.push({
+                                    ...originalFolder,
+                                    id: newFolderId,
+                                    parentId: currentTargetParentId,
+                                    name: newFolderName,
+                                    createdAt: new Date().toISOString()
+                                });
+
+                                // Copy all items that belonged to this specific original folder
+                                const childrenItems = state.items.filter(i => i.folderId === originalFolderId);
+                                for (const childItem of childrenItems) {
+                                    newItems.push({
+                                        ...childItem,
+                                        id: crypto.randomUUID(),
+                                        folderId: newFolderId,
+                                        createdAt: new Date().toISOString()
+                                    });
+                                }
+
+                                // Find all sub-folders and recursively copy them into this new folder ID
+                                const subFolders = state.folders.filter(f => f.parentId === originalFolderId);
+                                for (const childFolder of subFolders) {
+                                    copyFolderRecursive(childFolder.id, newFolderId, false);
+                                }
+                            };
+
+                            copyFolderRecursive(folderToCopy.id, targetParentId, true);
+                        }
+                    }
+
+                    return { folders: newFolders, items: newItems };
+                }),
         }),
         {
             name: 'metro-storage-store', // persisted in localStorage
