@@ -1,6 +1,6 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
-import { Search, RotateCcw } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,6 @@ export default function ServicesPage() {
   const { pipelines, services, updateService, envFilter } = useAppStore();
 
   // UI State
-  const [search, setSearch] = useState('');
   const [serviceTypeFilter, setServiceTypeFilter] = useState<'all' | 'pipeline' | 'global'>('all');
   const [pipelineFilter, setPipelineFilter] = useState<string>('all');
   const [serviceNameFilter, setServiceNameFilter] = useState<string>('all');
@@ -25,9 +24,12 @@ export default function ServicesPage() {
     envFilter === 'all' ? pipelines : pipelines.filter(p => p.environment === envFilter),
     [pipelines, envFilter]);
 
-  const uniqueServiceNames = useMemo(() =>
-    Array.from(new Set(services.map(s => s.name))).sort(),
-    [services]);
+  const uniqueServiceNames = useMemo(() => {
+    const list = pipelineFilter === 'all'
+      ? services
+      : services.filter(s => s.pipelineId === pipelineFilter);
+    return Array.from(new Set(list.map(s => s.name))).sort();
+  }, [services, pipelineFilter]);
 
   const filteredServices = useMemo(() => {
     return services
@@ -51,14 +53,9 @@ export default function ServicesPage() {
         // Name & Search Filters
         if (serviceNameFilter !== 'all' && s.name !== serviceNameFilter) return false;
 
-        if (search) {
-          const q = search.toLowerCase();
-          return s.name.toLowerCase().includes(q) || s.pipelineName.toLowerCase().includes(q);
-        }
-
         return true;
       });
-  }, [services, pipelines, search, serviceTypeFilter, pipelineFilter, serviceNameFilter]);
+  }, [services, pipelines, serviceTypeFilter, pipelineFilter, serviceNameFilter]);
 
   // 2. Action Handlers
   const handleRollout = useCallback(async (svcId: string) => {
@@ -90,15 +87,6 @@ export default function ServicesPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="relative w-64">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input
-              placeholder="Filter services..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="h-8 pl-8 text-xs bg-surface-1"
-            />
-          </div>
 
           <ServiceFilters
             serviceType={serviceTypeFilter}
