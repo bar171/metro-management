@@ -356,7 +356,7 @@ export default function PipelinesPage() {
                           </h3>
                         </div>
                         <div className="flex-1 bg-muted/5 flex items-center justify-center p-2 overflow-hidden">
-                          <svg viewBox="0 0 1000 500" className="w-full h-auto pointer-events-none max-w-[1000px]" style={{ zIndex: 0 }}>
+                          <svg viewBox="0 0 920 600" className="w-full h-auto pointer-events-none max-w-[1000px]" style={{ zIndex: 0 }}>
                             <defs>
                               <marker id="arrow" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
                                 <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" className="text-muted-foreground/50" />
@@ -373,8 +373,8 @@ export default function PipelinesPage() {
                               const renderNode = (svcName: string, x: number, y: number) => {
                                 const svc = pipelineServices.find(s => s.name === svcName);
                                 return (
-                                  <foreignObject key={svcName} x={x} y={y} width="180" height="120" className="overflow-visible pointer-events-auto">
-                                    <div className={`w-full h-full rounded-xl border flex flex-col justify-center gap-1.5 px-4 py-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg
+                                  <foreignObject key={svcName} x={x} y={y} width="180" height="150" className="overflow-visible pointer-events-auto">
+                                    <div className={`w-full h-full rounded-xl border flex flex-col justify-center gap-2 px-5 py-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg
                                       ${svc ? (() => {
                                         const latestLag = (() => {
                                           const l = metrics.filter(m => m.pipelineId === selected.id && m.serviceId === svc.id && m.type === 'kafka_lag');
@@ -445,26 +445,26 @@ export default function PipelinesPage() {
                               };
                               return (
                                 <>
-                                  <path d="M 200 100 L 240 100 L 240 260 L 280 260" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
-                                  <path d="M 200 260 L 280 260" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
-                                  <path d="M 200 420 L 240 420 L 240 260 L 280 260" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
-                                  <path d="M 460 260 L 540 260" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
-                                  <path d="M 460 260 L 500 260 L 500 100 L 540 100" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
-                                  <path d="M 460 260 L 500 260 L 500 340 L 760 340 L 760 260" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" />
-                                  <path d="M 370 320 L 370 360" stroke="currentColor" fill="none" strokeWidth="2" className="text-status-critical/40" markerEnd="url(#arrow-red)" />
-                                  <path d="M 720 260 L 760 260 L 760 100 L 800 100" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
-                                  <path d="M 720 260 L 760 260 L 760 420 L 800 420" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
-                                  <path d="M 630 40 L 630 15 L 370 15 L 370 200" stroke="currentColor" fill="none" strokeWidth="2" className="text-blue-500/40" markerEnd="url(#arrow-blue)" />
+                                  <path d="M 200 105 L 225 105 L 225 295 L 250 295" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 200 295 L 250 295" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 200 485 L 225 485 L 225 295 L 250 295" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 430 295 L 480 295" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 430 295 L 455 295 L 455 105 L 480 105" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 430 295 L 455 295 L 455 390 L 685 390 L 685 295" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" />
+                                  <path d="M 340 370 L 340 410" stroke="currentColor" fill="none" strokeWidth="2" className="text-status-critical/40" markerEnd="url(#arrow-red)" />
+                                  <path d="M 660 295 L 685 295 L 685 105 L 710 105" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 660 295 L 685 295 L 685 485 L 710 485" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 570 30 L 570 10 L 340 10 L 340 220" stroke="currentColor" fill="none" strokeWidth="2" className="text-blue-500/40" markerEnd="url(#arrow-blue)" />
 
-                                  {renderNode('push-data', 20, 40)}
-                                  {renderNode('kafka-consumer', 20, 200)}
-                                  {renderNode('get-data', 20, 360)}
-                                  {renderNode('python-validate', 280, 200)}
-                                  {renderNode('informative-validation', 280, 360)}
-                                  {renderNode('external-transform', 540, 40)}
-                                  {renderNode('transform-data', 540, 200)}
-                                  {renderNode('publish', 800, 40)}
-                                  {renderNode('sink-data', 800, 360)}
+                                  {renderNode('push-data', 20, 30)}
+                                  {renderNode('kafka-consumer', 20, 220)}
+                                  {renderNode('get-data', 20, 410)}
+                                  {renderNode('python-validate', 250, 220)}
+                                  {renderNode('informative-validation', 250, 410)}
+                                  {renderNode('external-transform', 480, 30)}
+                                  {renderNode('transform-data', 480, 220)}
+                                  {renderNode('publish', 710, 30)}
+                                  {renderNode('sink-data', 710, 410)}
                                 </>
                               );
                             })()}
