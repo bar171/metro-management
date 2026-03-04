@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAppStore } from '@/stores/useAppStore';
+import * as Icons from 'lucide-react';
 
 const COLORS = [
   { name: 'default', class: 'bg-muted/50 border-input' },
@@ -26,7 +27,7 @@ const COLORS = [
 interface CreateItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  folderId: string;
+  folderId: string | null;
   itemToEdit?: StorageItem | null;
 }
 
@@ -155,16 +156,37 @@ export function CreateItemDialog({ open, onOpenChange, folderId, itemToEdit }: C
               </div>
             ) : (
               <div className="grid gap-2">
-                <Label htmlFor="file">Upload File</Label>
-                <Input
-                  id="file"
-                  type="file"
-                  accept={type === 'photo' ? 'image/*' : '*/*'}
-                  onChange={handleFileChange}
-                />
-                {url && !fileToSimulate && itemToEdit && (
-                  <p className="text-xs text-muted-foreground mt-1">Current file uploaded. Select a new one to replace.</p>
-                )}
+                <Label>Upload File</Label>
+                <div className="flex items-center gap-4 mt-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="relative overflow-hidden group hover:bg-muted"
+                    onClick={() => document.getElementById('file-upload')?.click()}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Icons.Upload className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      <span>{fileToSimulate ? 'Change File' : 'Select File'}</span>
+                    </div>
+                  </Button>
+                  <Input
+                    id="file-upload"
+                    type="file"
+                    className="hidden"
+                    accept={type === 'photo' ? 'image/*' : '*/*'}
+                    onChange={handleFileChange}
+                  />
+                  {fileToSimulate && (
+                    <span className="text-sm text-foreground truncate max-w-[200px]" title={fileToSimulate.name}>
+                      {fileToSimulate.name}
+                    </span>
+                  )}
+                  {url && !fileToSimulate && itemToEdit && (
+                    <span className="text-sm text-muted-foreground truncate max-w-[200px]" title="Current file uploaded">
+                      Current file keeping
+                    </span>
+                  )}
+                </div>
               </div>
             )}
             
@@ -173,7 +195,14 @@ export function CreateItemDialog({ open, onOpenChange, folderId, itemToEdit }: C
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={!name.trim() || (type === 'link' && !url.trim() && !fileToSimulate)}>
+            <Button 
+              type="submit" 
+              disabled={
+                !name.trim() || 
+                (type === 'link' && !url.trim()) || 
+                (type !== 'link' && !fileToSimulate && !itemToEdit)
+              }
+            >
               {itemToEdit ? 'Save Changes' : 'Add Item'}
             </Button>
           </DialogFooter>

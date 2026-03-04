@@ -23,14 +23,17 @@ import {
   SiConfluence,
   SiRedhatopenshift
 } from 'react-icons/si';
+import { Switch } from '@/components/ui/switch';
+import { Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const BRAND_ICONS: { id: string; icon?: LucideIcon | React.ComponentType; imgUrl?: string; label: string; color?: string }[] = [
-  { id: 'kafka', icon: SiApachekafka, label: 'Kafka' }, // No color -> inherits text color
+  { id: 'kafka', icon: SiApachekafka, label: 'Kafka' },
   { id: 'postgres', icon: SiPostgresql, label: 'Postgres', color: '#4169E1' },
   { id: 'redis', icon: SiRedis, label: 'Redis', color: '#DC382D' },
   { id: 'airflow', imgUrl: '/airflow-icon.svg', label: 'Airflow' },
   { id: 'grafana', icon: SiGrafana, label: 'Grafana', color: '#F46800' },
-  { id: 'splunk', icon: SiSplunk, label: 'Splunk' }, // No color -> inherits text color
+  { id: 'splunk', icon: SiSplunk, label: 'Splunk' },
   { id: 'openshift', icon: SiRedhatopenshift, label: 'OpenShift', color: '#EE0000' },
   { id: 'jira', icon: SiJira, label: 'Jira', color: '#0052CC' },
   { id: 'confluence', icon: SiConfluence, label: 'Confluence', color: '#172B4D' },
@@ -71,13 +74,16 @@ interface CreateFolderDialogProps {
 }
 
 export function CreateFolderDialog({ open, onOpenChange, folderToEdit, parentId }: CreateFolderDialogProps) {
-  const { addFolder, updateFolder } = useStorageStore();
+  const { folders, addFolder, updateFolder } = useStorageStore();
   const currentEnv = useAppStore(s => s.envFilter);
+
+  const parentFolder = parentId ? folders.find(f => f.id === parentId) : null;
 
   const [name, setName] = useState(folderToEdit?.name || '');
   const [selectedIcon, setSelectedIcon] = useState(folderToEdit?.icon || 'kafka');
   const [customIconUrl, setCustomIconUrl] = useState<string | null>(folderToEdit?.customIconUrl || null);
   const [selectedColor, setSelectedColor] = useState(folderToEdit?.color || 'default');
+  const [isGlobal, setIsGlobal] = useState(folderToEdit?.isGlobal || false);
 
   useEffect(() => {
     if (open) {
@@ -85,6 +91,7 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit, parentId 
       setSelectedIcon(folderToEdit?.icon || 'kafka');
       setCustomIconUrl(folderToEdit?.customIconUrl || null);
       setSelectedColor(folderToEdit?.color || 'default');
+      setIsGlobal(folderToEdit?.isGlobal || false);
     }
   }, [open, folderToEdit]);
 
@@ -116,7 +123,9 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit, parentId 
         name,
         icon: selectedIcon,
         customIconUrl: customIconUrl || undefined,
-        color: selectedColor === 'default' ? undefined : selectedColor
+        color: selectedColor === 'default' ? undefined : selectedColor,
+        isGlobal: folderToEdit.parentId ? (folders.find(f => f.id === folderToEdit.parentId)?.isGlobal || false) : isGlobal,
+        parentId: isGlobal ? null : folderToEdit.parentId,
       });
     } else {
       addFolder({
@@ -124,8 +133,9 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit, parentId 
         icon: selectedIcon,
         customIconUrl: customIconUrl || undefined,
         color: selectedColor === 'default' ? undefined : selectedColor,
-        environmentId: currentEnv,
-        parentId: parentId || null,
+        isGlobal: parentFolder ? !!parentFolder.isGlobal : isGlobal,
+        environmentId: parentFolder ? parentFolder.environmentId : currentEnv,
+        parentId: parentFolder ? parentFolder.id : (isGlobal ? null : null),
       });
     }
     onOpenChange(false);
@@ -133,14 +143,34 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit, parentId 
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[550px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>{folderToEdit ? 'Edit Folder' : 'Create New Folder'}</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Name</Label>
+          <div className="grid gap-5 py-5">
+            <div className="grid gap-3">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="name">Name</Label>
+                {parentId === null && (
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="global" className="text-xs text-muted-foreground flex items-center gap-1">
+                      Global
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-3 w-3 cursor-help text-muted-foreground/70" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="w-[200px] text-xs">When enabled, this folder will be promoted to the Root directory and visible across all environments.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </Label>
+                    <Switch id="global" checked={isGlobal} onCheckedChange={setIsGlobal} className="scale-75" />
+                  </div>
+                )}
+              </div>
               <Input
                 id="name"
                 value={name}
@@ -150,7 +180,7 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit, parentId 
               />
             </div>
 
-            <div className="grid gap-2">
+            <div className="grid gap-3">
               <Label>Color Theme</Label>
               <div className="flex gap-2 flex-wrap">
                 {COLORS.map((c) => (
@@ -168,7 +198,7 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit, parentId 
 
             <div className="grid gap-2">
               <Label className="flex justify-between items-center">
-                <span>select icon</span>
+                <span>Select icon</span>
               </Label>
               <div className="grid grid-cols-6 gap-2">
                 {BRAND_ICONS.map((brand) => {
@@ -187,7 +217,7 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit, parentId 
                         : 'bg-background hover:bg-muted border-input'
                         } transition-colors`}
                     >
-                      {Icon ? <Icon className="h-5 w-5" style={brand.color ? { color: brand.color } : {}} /> : null}
+                      {Icon ? <Icon className="h-5 w-5" style={{ color: brand.color || '#ffffff' }} /> : null}
                       {brand.imgUrl ? <img src={brand.imgUrl} alt={brand.label} className="h-5 w-5 object-contain" /> : null}
                     </button>
                   );
@@ -233,6 +263,7 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit, parentId 
                   return (
                     <button
                       key={iconName}
+                      color='white'
                       type="button"
                       title={iconName}
                       onClick={() => {
@@ -244,7 +275,7 @@ export function CreateFolderDialog({ open, onOpenChange, folderToEdit, parentId 
                         : 'bg-background hover:bg-muted border-input'
                         } transition-colors`}
                     >
-                      <Icon className="h-5 w-5" />
+                      <Icon className="h-5 w-5 text-white" />
                     </button>
                   );
                 })}
