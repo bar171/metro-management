@@ -499,7 +499,7 @@ const BackfillPage = () => {
                                                                         type="number"
                                                                         value={valDaily}
                                                                         onChange={(e) => handleLimitChange(group.id, 'etlDailyTransportMaxSizeGb', e.target.value)}
-                                                                        className="h-8 max-w-[100px] transition-colors focus-visible:ring-purple-500"
+                                                                        className="h-8 max-w-[120px] transition-colors focus-visible:ring-purple-500"
                                                                         placeholder="No Limit"
                                                                     />
                                                                 </TableCell>
@@ -508,7 +508,7 @@ const BackfillPage = () => {
                                                                         type="number"
                                                                         value={valBackfillDays}
                                                                         onChange={(e) => handleLimitChange(group.id, 'etlBackfillLimitDays', e.target.value)}
-                                                                        className="h-8 max-w-[100px] transition-colors focus-visible:ring-purple-500"
+                                                                        className="h-8 max-w-[120px] transition-colors focus-visible:ring-purple-500"
                                                                         placeholder="No Limit"
                                                                     />
                                                                 </TableCell>
