@@ -555,27 +555,13 @@ const BackfillPage = () => {
                             </DialogHeader>
                             <div className="space-y-4 py-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Select Unregistered Source</label>
-                                    <Select value={selectedSourceToRegister} onValueChange={setSelectedSourceToRegister}>
-                                        <SelectTrigger><SelectValue placeholder="Choose a source..." /></SelectTrigger>
-                                        <SelectContent>
-                                            {services.filter(s => s.stage === 'source' && !s.isRegisteredForBroadBackfill).length === 0 ? (
-                                                <SelectItem value="none" disabled>All sources already registered.</SelectItem>
-                                            ) : (
-                                                services
-                                                    .filter(s => s.stage === 'source' && !s.isRegisteredForBroadBackfill)
-                                                    .map(s => {
-                                                        const p = pipelines.find(pip => pip.id === s.pipelineId);
-                                                        const pName = p ? p.name : (s.pipelineId === 'global' ? 'Global' : s.pipelineId);
-                                                        return (
-                                                            <SelectItem key={s.id} value={s.id}>
-                                                                {pName} - {s.name} ({s.id})
-                                                            </SelectItem>
-                                                        );
-                                                    })
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                                    <label className="text-sm font-medium">Enter Source ID</label>
+                                    <Input
+                                        placeholder="Enter Source UUID..."
+                                        value={selectedSourceToRegister}
+                                        onChange={(e) => setSelectedSourceToRegister(e.target.value)}
+                                        className="font-mono text-sm"
+                                    />
                                 </div>
                             </div>
                             <DialogFooter>
