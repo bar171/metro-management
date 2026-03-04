@@ -13,7 +13,8 @@ import {
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { useAppStore } from '@/stores/useAppStore';
 import {
   Sidebar,
   SidebarContent,
@@ -29,7 +30,6 @@ import {
 
 const navItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
-  { title: 'Liveness (Live)', url: '/liveness', icon: HeartPulse },
   { title: 'Pipelines', url: '/pipelines', icon: GitBranch },
 
   { title: 'Storage & Links', url: '/storage', icon: Folder },
@@ -43,6 +43,11 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
+  const { services } = useAppStore();
+
+  const isAnyDegraded = useMemo(() =>
+    services.some(s => s.status === 'degraded' || s.status === 'lagging'),
+    [services]);
 
   const [passingTrains, setPassingTrains] = useState<number[]>([]);
 
@@ -116,7 +121,15 @@ export function AppSidebar() {
                       className="flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
                       activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
                     >
-                      <item.icon className="h-4 w-4 shrink-0" />
+                      <div className="relative">
+                        <item.icon className="h-4 w-4 shrink-0" />
+                        {item.title === 'Pipelines' && isAnyDegraded && (
+                          <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-status-critical opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-status-critical"></span>
+                          </span>
+                        )}
+                      </div>
                       {!collapsed && <span className="text-sm">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
