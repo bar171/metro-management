@@ -17,13 +17,14 @@ import {
 import { motion } from 'framer-motion';
 import { useAppStore } from '@/stores/useAppStore';
 import { toast } from 'sonner';
+import type { ServiceStatus } from '@/types';
 
 interface ServiceType {
     id: string;
     name: string;
     pipelineId: string;
     pipelineName: string;
-    status: 'healthy' | 'degraded' | 'failed' | 'offline';
+    status: ServiceStatus;
     replicas: number;
     cpuLimit: number;
     memoryLimit: number;
