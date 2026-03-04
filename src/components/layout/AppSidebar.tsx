@@ -9,6 +9,7 @@ import {
   Wrench,
   ShieldAlert,
   Folder,
+  Database,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
@@ -34,6 +35,7 @@ const navItems = [
   { title: 'Storage & Links', url: '/storage', icon: Folder },
   { title: 'Metrics', url: '/metrics', icon: BarChart3 },
   { title: 'Services', url: '/services', icon: Server },
+  { title: 'Backfill Manager', url: '/backfill', icon: Database },
   { title: 'Blacklist Admin', url: '/blacklist', icon: ShieldAlert },
 ];
 

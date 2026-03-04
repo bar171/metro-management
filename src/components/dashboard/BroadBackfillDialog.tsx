@@ -90,8 +90,8 @@ export function BroadBackfillDialog() {
                                         <FormLabel className="text-xs mb-1">From Time</FormLabel>
                                         <FormControl>
                                             <div className="relative w-full flex items-center">
-                                                <Input type="datetime-local" {...field} className="h-9 w-full text-xs bg-surface-1 pl-3 pr-8 py-1 cursor-text" />
-                                                <Calendar className="absolute right-2.5 w-4 h-4 text-muted-foreground pointer-events-none" />
+                                                <Input type="datetime-local" {...field} className="h-9 w-full text-xs bg-surface-1 pl-3 pr-10 py-1 cursor-text" />
+                                                <Calendar className="absolute right-3 w-4 h-4 text-muted-foreground pointer-events-none" />
                                             </div>
                                         </FormControl>
                                         <FormMessage className="text-[10px]" />
@@ -106,8 +106,8 @@ export function BroadBackfillDialog() {
                                         <FormLabel className="text-xs mb-1">To Time</FormLabel>
                                         <FormControl>
                                             <div className="relative w-full flex items-center">
-                                                <Input type="datetime-local" {...field} className="h-9 w-full text-xs bg-surface-1 pl-3 pr-8 py-1 cursor-text" />
-                                                <Calendar className="absolute right-2.5 w-4 h-4 text-muted-foreground pointer-events-none" />
+                                                <Input type="datetime-local" {...field} className="h-9 w-full text-xs bg-surface-1 pl-3 pr-10 py-1 cursor-text" />
+                                                <Calendar className="absolute right-3 w-4 h-4 text-muted-foreground pointer-events-none" />
                                             </div>
                                         </FormControl>
                                         <FormMessage className="text-[10px]" />

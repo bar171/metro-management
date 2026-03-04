@@ -59,7 +59,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ theme });
   },
 
-  envFilter: 'dev',
+  envFilter: 'prod',
   setEnvFilter: (envFilter) => set({ envFilter }),
 
   pipelines: [],

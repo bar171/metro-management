@@ -135,7 +135,8 @@ export default function PipelinesPage() {
       name: newGroupName,
       primaryPipelineId: selected.id,
       secondaryPipelineIds: [],
-      etlDailyTransportMaxSizeGb: 15
+      etlDailyTransportMaxSizeGb: 15,
+      etlBackfillLimitDays: null
     });
     setNewGroupName('');
     setIsCreateGroupOpen(false);
@@ -658,23 +659,6 @@ export default function PipelinesPage() {
                             </div>
                           </div>
 
-                          <div className="pt-2 border-t border-border space-y-2">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono uppercase tracking-wider">
-                                <HardDrive className="w-3 h-3" />
-                                Daily Max Backfilled Data
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Input
-                                  type="number"
-                                  value={group.etlDailyTransportMaxSizeGb}
-                                  onChange={e => updateGroup(group.id, { etlDailyTransportMaxSizeGb: Number(e.target.value) })}
-                                  className="h-7 w-20 text-xs font-mono px-2 bg-surface-1"
-                                />
-                                <span className="text-[10px] text-muted-foreground font-mono uppercase">GB</span>
-                              </div>
-                            </div>
-                          </div>
 
                           {secondaryPipelines.length > 0 && (
                             <div className="pt-2 border-t border-border">

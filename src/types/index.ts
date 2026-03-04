@@ -18,7 +18,8 @@ export interface Group {
   name: string;
   primaryPipelineId: string;
   secondaryPipelineIds: string[];
-  etlDailyTransportMaxSizeGb: number;
+  etlDailyTransportMaxSizeGb: number | null;
+  etlBackfillLimitDays: number | null;
 }
 
 export type PipelineType = 'BASIC' | 'STREAM' | 'BACKFILL';
@@ -52,6 +53,8 @@ export interface Service {
   memoryLimit: number; // storing MiB natively (e.g. 1024)
   status: ServiceStatus;
   stage?: 'source' | 'get-data' | 'python-validate' | 'transform' | 'sink' | 'support';
+  isRegisteredForBroadBackfill?: boolean;
+  project?: string;
 }
 
 export interface MetricSnapshot {

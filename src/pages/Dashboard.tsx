@@ -6,7 +6,6 @@ import { motion } from 'framer-motion';
 import { Zap, Server, Cpu, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 import { mockOpenShiftApi, type ClusterMetrics } from '@/lib/openshift';
-import { BroadBackfillDialog } from '@/components/dashboard/BroadBackfillDialog';
 
 export default function Dashboard() {
   const { pipelines, services, metrics, logs, loading, envFilter } = useAppStore();
@@ -57,7 +56,6 @@ export default function Dashboard() {
           <h2 className="text-lg font-semibold">Metro Overview</h2>
           <p className="text-xs text-muted-foreground font-mono">Real-time status</p>
         </div>
-        <BroadBackfillDialog />
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">

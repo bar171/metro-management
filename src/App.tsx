@@ -12,6 +12,7 @@ import ServicesPage from "./pages/ResourcesPage";
 import LivenessPage from "./pages/LivenessPage";
 import StoragePage from "./pages/StoragePage";
 import BlacklistPage from "./pages/BlacklistPage";
+import BackfillPage from "./pages/BackfillPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/metrics" element={<MetricsPage />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/blacklist" element={<BlacklistPage />} />
+            <Route path="/backfill" element={<BackfillPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
