@@ -56,16 +56,46 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-      <SidebarHeader className="p-4">
+      <SidebarHeader className="p-4 border-b border-sidebar-border/50">
         <div
-          className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+          className="logo-container group flex items-center gap-3 cursor-pointer transition-all duration-300"
           onClick={handleLogoClick}
         >
-          <img src="/favicon.svg" alt="Metro Logo" className="w-8 h-8" />
+          {/* Hexagonal Logo Container with Glow */}
+          <div className="relative flex-shrink-0">
+            <div className="logo-glow absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 transition-opacity duration-700" />
+
+            <div className="relative w-10 h-10 flex items-center justify-center">
+              {/* Spinning tech border */}
+              <div className="absolute inset-0 border border-primary/20 rounded-lg rotate-45 group-hover:rotate-90 transition-transform duration-500" />
+
+              <div className="relative w-8 h-8 bg-sidebar-accent/50 rounded-lg flex items-center justify-center border border-primary/30 overflow-hidden shadow-2xl">
+                <img src="/favicon.svg" alt="Metro Logo" className="w-5 h-5 z-10 filter drop-shadow-[0_0_8px_rgba(var(--primary),0.8)]" />
+
+                {/* Tech background pattern */}
+                <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle,var(--sidebar-primary)_1px,transparent_1px)] bg-[size:4px_4px]" />
+              </div>
+
+              {/* Status Indicator */}
+              <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full border border-sidebar-background z-30">
+                <div className="absolute inset-0 bg-emerald-500 rounded-full status-pulse-dot" />
+              </div>
+            </div>
+          </div>
+
           {!collapsed && (
-            <div>
-              <h1 className="text-sm font-bold text-sidebar-accent-foreground tracking-tight">Metro ETL</h1>
-              <p className="text-[10px] text-sidebar-foreground font-mono">CONTROL PLANE</p>
+            <div className="flex flex-col justify-center min-w-[120px]">
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-[13px] font-extrabold text-sidebar-accent-foreground tracking-[0.05em] uppercase leading-none font-mono">
+                  Metro<span className="text-primary italic">ETL</span>
+                </h1>
+              </div>
+              <div className="flex items-center gap-1.5 mt-1">
+                <div className="h-[1px] w-3 bg-primary/40" />
+                <p className="text-[9px] text-sidebar-foreground/60 font-medium tracking-[0.2em] uppercase leading-none">
+                  Control Plane
+                </p>
+              </div>
             </div>
           )}
         </div>

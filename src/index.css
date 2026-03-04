@@ -364,6 +364,41 @@
   }
 }
 
+@keyframes status-pulse {
+
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes logo-glow-pulse {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 5px rgba(var(--primary), 0.3));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 15px rgba(var(--primary), 0.6));
+  }
+}
+
+.status-pulse-dot {
+  animation: status-pulse 2s ease-in-out infinite;
+}
+
+.logo-container:hover .logo-glow {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
 @keyframes train-ride {
   0% {
     transform: translate(0, -50%);
