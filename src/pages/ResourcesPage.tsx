@@ -76,9 +76,9 @@ export default function ServicesPage() {
   };
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-6 gap-4 flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden">
       {/* Header Section */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between shrink-0">
         <div>
           <h2 className="text-lg font-semibold">Services</h2>
           <p className="text-xs text-muted-foreground font-mono">
@@ -110,10 +110,10 @@ export default function ServicesPage() {
       </div>
 
       {/* Table Section */}
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-surface-1">
+      <div className="rounded-lg border border-border bg-card flex-1 min-h-0 flex flex-col overflow-hidden">
+        <Table wrapperClassName="flex-1 min-h-0 overflow-auto custom-scrollbar">
+          <TableHeader className="sticky top-0 z-10 bg-surface-1 after:absolute after:inset-x-0 after:bottom-0 after:border-b after:border-border">
+            <TableRow className="border-0 hover:bg-transparent">
               <TableHead className="text-[10px] font-mono uppercase w-8">Status</TableHead>
               <TableHead className="text-[10px] font-mono uppercase">Service</TableHead>
               <TableHead className="text-[10px] font-mono uppercase">Pipeline</TableHead>
