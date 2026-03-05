@@ -445,8 +445,8 @@ export default function PipelinesPage() {
                               };
                               return (
                                 <>
-                                  <path d="M 165 115 L 197.5 115 L 197.5 190 L 230 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
-                                  <path d="M 165 230 L 197.5 230 L 197.5 190 L 230 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 165 90 L 197.5 90 L 197.5 190 L 230 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 165 220 L 197.5 220 L 197.5 190 L 230 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
                                   <path d="M 165 345 L 197.5 345 L 197.5 190 L 230 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
                                   <path d="M 390 190 L 420 190 L 420 230 L 450 230" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
                                   <path d="M 390 190 L 420 190 L 420 115 L 450 115" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
@@ -456,8 +456,8 @@ export default function PipelinesPage() {
                                   <path d="M 610 230 L 640 230 L 640 345 L 670 345" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
                                   <path d="M 550 60 L 550 25 L 310 25 L 310 135" stroke="currentColor" fill="none" strokeWidth="2" className="text-blue-500/40" markerEnd="url(#arrow-blue)" />
 
-                                  {renderNode('push-data', 5, 60)}
-                                  {renderNode('kafka-consumer', 5, 175)}
+                                  {renderNode('push-data', 5, 30)}
+                                  {renderNode('kafka-consumer', 5, 160)}
                                   {renderNode('get-data', 5, 290)}
                                   {renderNode('python-validate', 230, 135)}
                                   {renderNode('informative-validation', 230, 285)}
