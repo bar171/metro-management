@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { ServiceFilters } from '@/components/ServiceFilters';
 import { ServiceRow } from '@/components/ServiceRow';
@@ -111,28 +110,31 @@ export default function ServicesPage() {
 
       {/* Table Section */}
       <div className="rounded-lg border border-border bg-card flex-1 min-h-0 flex flex-col overflow-hidden">
-        <Table wrapperClassName="flex-1 min-h-0 overflow-auto custom-scrollbar">
-          <TableHeader className="sticky top-0 z-10 bg-surface-1 after:absolute after:inset-x-0 after:bottom-0 after:border-b after:border-border">
-            <TableRow className="border-0 hover:bg-transparent">
-              <TableHead className="text-[10px] font-mono uppercase w-8">Status</TableHead>
-              <TableHead className="text-[10px] font-mono uppercase">Service</TableHead>
-              <TableHead className="text-[10px] font-mono uppercase">Pipeline</TableHead>
-              <TableHead className="text-[10px] font-mono uppercase text-center">Replicas</TableHead>
-              <TableHead className="text-[10px] font-mono uppercase">Resources</TableHead>
-              <TableHead className="text-[10px] font-mono uppercase text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredServices.map(svc => (
+        {/* Independent Header */}
+        <div className="grid grid-cols-[60px_1fr_1fr_140px_240px_120px] items-center px-4 py-3 bg-surface-1 border-b border-border shrink-0 z-10 pr-[20px]">
+          <div className="text-[10px] font-mono uppercase text-muted-foreground font-medium text-center">Status</div>
+          <div className="text-[10px] font-mono uppercase text-muted-foreground font-medium">Service</div>
+          <div className="text-[10px] font-mono uppercase text-muted-foreground font-medium">Pipeline</div>
+          <div className="text-[10px] font-mono uppercase text-muted-foreground font-medium text-center">Replicas</div>
+          <div className="text-[10px] font-mono uppercase text-muted-foreground font-medium">Resources</div>
+          <div className="text-[10px] font-mono uppercase text-muted-foreground font-medium text-right pr-2">Actions</div>
+        </div>
+
+        {/* Scrollable Body */}
+        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col">
+          {filteredServices.length === 0 ? (
+            <div className="flex items-center justify-center p-8 text-xs text-muted-foreground font-mono">No services found matching filters.</div>
+          ) : (
+            filteredServices.map(svc => (
               <ServiceRow
                 key={svc.id}
                 service={svc}
                 isRolling={rollingId === svc.id}
                 onRollout={handleRollout}
               />
-            ))}
-          </TableBody>
-        </Table>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
