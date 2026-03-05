@@ -50,15 +50,15 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-6 space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="p-6 gap-6 flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden">
+      <div className="flex items-center justify-between shrink-0">
         <div>
           <h2 className="text-lg font-semibold">Metro Overview</h2>
           <p className="text-xs text-muted-foreground font-mono">Real-time status</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 shrink-0">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}>
           <KpiTile
             label="Total Pipelines"
@@ -79,14 +79,14 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-6 flex-1 min-h-0">
         {/* Live Feed */}
-        <div className="lg:col-span-2 rounded-lg border border-border bg-card">
-          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+        <div className="lg:col-span-2 rounded-lg border border-border bg-card flex flex-col min-h-0">
+          <div className="px-4 py-3 border-b border-border flex items-center justify-between shrink-0">
             <span className="text-sm font-medium">Live Alert Feed</span>
             <span className="w-2 h-2 rounded-full bg-status-healthy animate-pulse" />
           </div>
-          <div className="max-h-80 overflow-auto custom-scrollbar divide-y divide-border">
+          <div className="flex-1 overflow-auto custom-scrollbar divide-y divide-border min-h-0">
             {criticalLogs.map((log, i) => (
               <motion.div
                 key={log.id}
@@ -106,8 +106,8 @@ export default function Dashboard() {
         </div>
 
         {/* Cluster Status (OpenShift) */}
-        <div className="rounded-lg border border-border bg-card p-4 space-y-4">
-          <div className="flex items-center justify-between border-b border-border pb-3">
+        <div className="rounded-lg border border-border bg-card p-4 flex flex-col min-h-0">
+          <div className="flex items-center justify-between border-b border-border pb-3 mb-4 shrink-0">
             <span className="text-sm font-medium flex items-center gap-2">
               <Server className="w-4 h-4 text-primary" />
               OpenShift Cluster
@@ -116,7 +116,7 @@ export default function Dashboard() {
           </div>
 
           {clusterMetrics ? (
-            <div className="space-y-5">
+            <div className="space-y-4 flex-1 overflow-auto custom-scrollbar pr-1 min-h-0">
               {/* Nodes */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
