@@ -9,7 +9,6 @@ import PipelinesPage from "./pages/PipelinesPage";
 
 import MetricsPage from "./pages/MetricsPage";
 import ServicesPage from "./pages/ResourcesPage";
-import LivenessPage from "./pages/LivenessPage";
 import StoragePage from "./pages/StoragePage";
 import BlacklistPage from "./pages/BlacklistPage";
 import BackfillPage from "./pages/BackfillPage";
@@ -27,7 +26,6 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/pipelines" element={<PipelinesPage />} />
-            <Route path="/liveness" element={<LivenessPage />} />
             <Route path="/storage" element={<StoragePage />} />
             <Route path="/metrics" element={<MetricsPage />} />
             <Route path="/services" element={<ServicesPage />} />

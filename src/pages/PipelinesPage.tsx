@@ -3,10 +3,9 @@ import { useAppStore } from '@/stores/useAppStore';
 import { StatusDot, PriorityBadge, EnvBadge, TypeBadge } from '@/components/shared/StatusIndicators';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Users, Server, Settings2, Plus, Trash2, ArrowRightLeft, RotateCcw, ArrowRight, HardDrive } from 'lucide-react';
+import { Search, Users, Server, Plus, Trash2, ArrowRightLeft, RotateCcw, ArrowRight, HardDrive } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
@@ -24,16 +23,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import type { Pipeline, ServiceStatus, PipelineType, Environment, Priority } from '@/types';
 
 export default function PipelinesPage() {
   const {
-    pipelines, groups, services,
+    pipelines, groups, services, metrics,
     selectedPipelineId, setSelectedPipelineId, envFilter,
     updateService,
     createPipeline, deletePipeline,
@@ -41,7 +35,7 @@ export default function PipelinesPage() {
   } = useAppStore();
 
   const [search, setSearch] = useState('');
-
+  const [statusFilter, setStatusFilter] = useState<'all' | 'healthy' | 'degraded'>('all');
   // Default to metro-pipeline if it exists and nothing is selected
   React.useEffect(() => {
     if (pipelines.length > 0 && !selectedPipelineId) {
@@ -72,16 +66,42 @@ export default function PipelinesPage() {
   // Group Search State
   const [groupSearch, setGroupSearch] = useState('');
 
+  const getPipelineHealth = React.useCallback((pipelineId: string): ServiceStatus => {
+    const svcs = services.filter(s => s.pipelineId === pipelineId);
+    if (svcs.some(s => s.status === 'lagging')) return 'lagging';
+    if (svcs.some(s => s.status === 'degraded')) return 'degraded';
+    return 'healthy';
+  }, [services]);
+
   const filteredPipelines = useMemo(() => {
     let result = pipelines;
     if (envFilter !== 'all') result = result.filter(a => a.environment === envFilter);
     if (search) result = result.filter(a => a.name.toLowerCase().includes(search.toLowerCase()));
+
+    if (statusFilter !== 'all') {
+      result = result.filter(a => {
+        const health = getPipelineHealth(a.id);
+        if (statusFilter === 'degraded') return health === 'degraded' || health === 'lagging';
+        return health === 'healthy';
+      });
+    }
+
+    result.sort((a, b) => {
+      const healthA = getPipelineHealth(a.id);
+      const healthB = getPipelineHealth(b.id);
+      const isDegradedA = healthA === 'degraded' || healthA === 'lagging';
+      const isDegradedB = healthB === 'degraded' || healthB === 'lagging';
+
+      if (isDegradedA && !isDegradedB) return -1;
+      if (!isDegradedA && isDegradedB) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
     return result;
-  }, [pipelines, envFilter, search]);
+  }, [pipelines, envFilter, search, statusFilter, getPipelineHealth]);
 
   const selected = useMemo(() => pipelines.find(a => a.id === selectedPipelineId), [pipelines, selectedPipelineId]);
   const pipelineServices = useMemo(() => services.filter(s => s.pipelineId === selectedPipelineId), [services, selectedPipelineId]);
-  const workloadServices = useMemo(() => pipelineServices.filter(s => s.name !== 'scheduler'), [pipelineServices]);
   const pipelineGroups = useMemo(() => {
     let result = groups.filter(g => g.primaryPipelineId === selectedPipelineId || g.secondaryPipelineIds.includes(selectedPipelineId || ''));
     if (groupSearch) {
@@ -89,13 +109,6 @@ export default function PipelinesPage() {
     }
     return result;
   }, [groups, selectedPipelineId, groupSearch]);
-
-  const getPipelineHealth = (pipelineId: string): ServiceStatus => {
-    const svcs = services.filter(s => s.pipelineId === pipelineId);
-    if (svcs.some(s => s.status === 'lagging')) return 'lagging';
-    if (svcs.some(s => s.status === 'degraded')) return 'degraded';
-    return 'healthy';
-  };
 
 
 
@@ -121,7 +134,7 @@ export default function PipelinesPage() {
   const handleDeletePipeline = async () => {
     if (!selected) return;
     if (pipelineGroups.length > 0) {
-      toast.error(`Cannot delete !Pipeline has ${pipelineGroups.length} associated groups.Please reassign them first.`);
+      toast.error(`Cannot delete! Pipeline has ${pipelineGroups.length} associated groups. Please reassign them first.`);
       return;
     }
     await deletePipeline(selected.id);
@@ -160,15 +173,18 @@ export default function PipelinesPage() {
   const secondaryPipelines = useMemo(() => pipelines.filter(p => p.role === 'secondary'), [pipelines]);
 
   return (
-    <div className="flex h-[calc(100vh-3rem)]">
-      {/* Left Pane */}
-      <div className="w-80 border-r border-border bg-card/50 flex flex-col shrink-0">
-        <div className="p-3 border-b border-border flex flex-col gap-3">
+    <div className="flex h-[calc(100vh-3rem)] p-4 gap-4 bg-muted/30 overflow-hidden">
+      {/* Left Pane: Pipeline List */}
+      <div className="w-72 border border-border bg-card rounded-xl flex flex-col shrink-0 overflow-hidden shadow-sm">
+        <div className="p-5 border-b border-border bg-muted/10 shrink-0 h-[120px] flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-sm">Pipelines</h3>
+            <h3 className="font-bold text-sm tracking-tight text-foreground/70 uppercase tracking-widest">Pipelines</h3>
             <Dialog open={isCreatePipelineOpen} onOpenChange={setIsCreatePipelineOpen}>
               <DialogTrigger asChild>
-                <Button variant="default" size="sm" className="h-8 text-xs font-semibold"><Plus className="h-3 w-3 mr-1" /> Create Pipeline</Button>
+                <Button variant="default" size="sm" className="h-8 px-4 text-xs font-bold shadow-sm rounded-lg uppercase tracking-tight">
+                  <Plus className="h-4 w-4 mr-1.5" />
+                  Create
+                </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -200,49 +216,58 @@ export default function PipelinesPage() {
               </DialogContent>
             </Dialog>
           </div>
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input
-              placeholder="Search pipelines..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="h-8 pl-8 text-xs bg-surface-1"
-            />
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40" />
+              <Input
+                placeholder="Search..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="h-8 pl-10 text-xs bg-background/50 border-border/50 focus-visible:ring-1 rounded-lg"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={(v: 'all' | 'healthy' | 'degraded') => setStatusFilter(v)}>
+              <SelectTrigger className="h-8 w-[125px] text-xs bg-background/50 border-border/50 focus-visible:ring-1 rounded-lg px-2.5">
+                <div className="flex items-center gap-1.5 truncate">
+                  <span className="text-muted-foreground/60 font-bold">Status:</span>
+                  <SelectValue />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="healthy">Healthy</SelectItem>
+                <SelectItem value="degraded">Degraded</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <div className="flex-1 overflow-auto custom-scrollbar">
           {filteredPipelines.map(pipeline => {
-            const groupsForPipe = groups.filter(g => g.primaryPipelineId === pipeline.id);
+            const groupsForPipe = groups.filter(g =>
+              g.primaryPipelineId === pipeline.id ||
+              g.secondaryPipelineIds.includes(pipeline.id)
+            );
+            const isSelected = selectedPipelineId === pipeline.id;
             return (
               <button
                 key={pipeline.id}
                 onClick={() => setSelectedPipelineId(pipeline.id)}
-                className={`w-full text-left px-3 py-3 border-b border-border hover:bg-surface-1 transition-colors flex items-start gap-3 ${selectedPipelineId === pipeline.id ? 'bg-surface-2 border-l-2 border-l-primary' : ''}`}
+                className={`w-full text-left px-3 py-3 border-b border-border hover:bg-surface-1/50 transition-all flex items-start gap-2.5 ${isSelected ? 'bg-primary/5 border-l-2 border-l-primary' : ''}`}
               >
-                <div className="mt-1"><StatusDot status={getPipelineHealth(pipeline.id)} pulse /></div>
-                <div className="flex-1 min-w-0 space-y-1.5">
-                  <div className="text-sm font-medium truncate flex justify-between items-center gap-2">
+                <div className="mt-1"><StatusDot status={getPipelineHealth(pipeline.id)} pulse size="sm" /></div>
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className={`text-xs font-semibold truncate flex justify-between items-center gap-2 ${isSelected ? 'text-primary' : 'text-foreground'}`}>
                     {pipeline.name}
                     {groupsForPipe.length > 0 && (
-                      <span className="text-[10px] bg-muted-foreground/10 text-muted-foreground px-1.5 py-0.5 rounded-full font-mono">
-                        {groupsForPipe.length}
+                      <span className="text-[10px] opacity-60 font-mono">
+                        ({groupsForPipe.length})
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center flex-wrap gap-1.5 mt-0.5">
+                  <div className="flex items-center gap-1.5 overflow-hidden">
                     <TypeBadge type={pipeline.type} />
                     <PriorityBadge priority={pipeline.priority} />
                   </div>
-                  {groupsForPipe.length > 0 && (
-                    <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-1 truncate" title={groupsForPipe.map(g => g.name).join(', ')}>
-                      <Users className="w-3 h-3 inline shrink-0" />
-                      <span className="truncate">
-                        {groupsForPipe.length <= 2
-                          ? groupsForPipe.map(g => g.name).join(', ')
-                          : `${groupsForPipe.slice(0, 2).map(g => g.name).join(', ')} +${groupsForPipe.length - 2} more`}
-                      </span>
-                    </div>
-                  )}
                 </div>
               </button>
             );
@@ -250,419 +275,277 @@ export default function PipelinesPage() {
         </div>
       </div>
 
-      {/* Right Pane */}
-      <div className="flex-1 overflow-auto custom-scrollbar relative">
-        <AnimatePresence mode="wait">
-          {selected ? (
-            <motion.div
-              key={selected.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="p-6 pb-24"
-            >
-              <div className="flex items-start justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <StatusDot status={getPipelineHealth(selected.id)} pulse className="w-4 h-4" />
-                  <div>
-                    <h2 className="text-xl font-bold flex items-center gap-2">
-                      {selected.name}
-                      <TypeBadge type={selected.type} />
-                      <PriorityBadge priority={selected.priority} />
-                    </h2>
-                    {pipelineGroups.length > 0 ? (
-                      <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-                        Owned by:
-                        <span className="font-medium text-foreground line-clamp-1" title={pipelineGroups.map(g => g.name).join(', ')}>
-                          {pipelineGroups.length <= 5
-                            ? pipelineGroups.map(g => g.name).join(', ')
-                            : `${pipelineGroups.slice(0, 5).map(g => g.name).join(', ')} +${pipelineGroups.length - 5} more`}
-                        </span>
-                      </p>
-                    ) : (
-                      <p className="text-sm text-muted-foreground mt-1 italic">No owner groups assigned</p>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => {
-                      toast.info(`Rolling out all ${selected.name} services...`, { description: `Rollout of ${pipelineServices.length} services initiated.` });
-                      pipelineServices.forEach((svc, i) => {
-                        setTimeout(() => updateService(svc.id, { status: 'degraded' }), i * 200);
-                        setTimeout(() => updateService(svc.id, { status: 'healthy' }), 2000 + i * 200);
-                      });
-                    }}
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                    Rollout Pipeline
-                  </Button>
-
-                  <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="destructive" size="sm" className="gap-2">
-                        <Trash2 className="w-4 h-4" />
-                        Delete Pipeline
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Delete Pipeline: {selected.name}</DialogTitle>
-                      </DialogHeader>
-                      <div className="py-4">
-                        {pipelineGroups.length > 0 ? (
-                          <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-md text-sm">
-                            <strong>Warning:</strong> This pipeline has {pipelineGroups.length} associated group(s). You must move them to another pipeline or delete them before deleting this pipeline.
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">Are you sure you want to delete this pipeline? This action cannot be undone.</p>
-                        )}
+      {/* Right Pane: Main Area */}
+      <div className="flex-1 border border-border bg-card rounded-xl overflow-hidden shadow-sm flex flex-col relative">
+        <div className="absolute inset-0 overflow-hidden flex flex-col">
+          <AnimatePresence mode="wait">
+            {selected ? (
+              <motion.div
+                key={selected.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex flex-col h-full overflow-hidden"
+              >
+                {/* Header aligned with sidebar header */}
+                <div className="p-5 border-b border-border bg-muted/10 shrink-0 h-[120px] flex items-center justify-between px-8">
+                  <div className="flex items-center gap-6">
+                    <StatusDot status={getPipelineHealth(selected.id)} pulse size="lg" />
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-bold flex items-center gap-3">
+                        {selected.name}
+                        <EnvBadge env={selected.environment} />
+                      </h2>
+                      <div className="flex items-center gap-3 mt-1">
+                        <TypeBadge type={selected.type} />
+                        <PriorityBadge priority={selected.priority} />
                       </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
-                        <Button variant="destructive" onClick={handleDeletePipeline} disabled={pipelineGroups.length > 0}>
-                          Confirm Delete
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </div>
-
-              <Tabs defaultValue="overview" className="space-y-4">
-                <TabsList className="bg-surface-1">
-                  <TabsTrigger value="overview" className="text-xs gap-1.5"><Server className="h-3.5 w-3.5" />Overview</TabsTrigger>
-                  <TabsTrigger value="groups" className="text-xs gap-1.5">
-                    <Users className="h-3.5 w-3.5" />
-                    Groups
-                    <span className="ml-1 text-[10px] opacity-60 font-mono">({pipelineGroups.length})</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="workloads" className="text-xs gap-1.5"><Settings2 className="h-3.5 w-3.5" />Workloads</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="overview" className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs items-stretch">
-                    <div className="rounded-lg border border-border bg-card p-3 flex flex-col justify-center">
-                      <span className="text-muted-foreground font-mono text-[10px] uppercase">Kafka Cluster</span>
-                      <p className="font-mono mt-1">{selected.kafkaCluster}</p>
-                    </div>
-                    <div className="rounded-lg border border-border bg-card p-3 flex flex-col justify-center">
-                      <span className="text-muted-foreground font-mono text-[10px] uppercase">Database</span>
-                      <p className="font-mono mt-1">{selected.databaseInstance}</p>
-                    </div>
-                    <div className="rounded-lg border border-border bg-card p-3 flex flex-col justify-center">
-                      <span className="text-muted-foreground font-mono text-[10px] uppercase">Groups</span>
-                      <p className="font-mono mt-1">{pipelineGroups.length}</p>
-                    </div>
-
-                  </div>
-
-                  <div className="rounded-lg border border-border bg-card">
-                    <div className="px-5 py-3.5 border-b border-border text-sm font-semibold flex justify-between items-center text-foreground uppercase tracking-wider">
-                      Metro Microservices Flow
-                    </div>
-                    <div className="w-full bg-surface-1/5 rounded-b-lg">
-                      <svg viewBox="0 0 1785 540" className="w-full h-auto pointer-events-none" style={{ zIndex: 0 }}>
-                        <defs>
-                          <marker id="arrow" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
-                            <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" className="text-muted-foreground/50" />
-                          </marker>
-                          <marker id="arrow-red" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
-                            <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" className="text-status-critical/80" />
-                          </marker>
-                          <marker id="arrow-blue" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
-                            <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" className="text-blue-500/80" />
-                          </marker>
-                        </defs>
-
-                        {/* push-data -> python-validate */}
-                        {pipelineServices.some(s => s.name === 'push-data') && (
-                          <path d="M 285 165 L 712.5 165 L 712.5 285 L 780 285" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
-                        )}
-
-                        {/* kafka-consumer -> python-validate */}
-                        {pipelineServices.some(s => s.name === 'kafka-consumer') && (
-                          <path d="M 285 285 L 780 285" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
-                        )}
-
-                        {/* scheduler -> get-data */}
-                        {pipelineServices.some(s => s.name === 'scheduler') && (
-                          <path d="M 285 405 L 420 405" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
-                        )}
-
-                        {/* get-data -> python-validate */}
-                        <path d="M 645 405 L 712.5 405 L 712.5 285 L 780 285" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
-
-                        {/* Python Validate -> Transform Data/External Transform and Publish */}
-                        {pipelineServices.some(s => s.name === 'external-transform' || s.name === 'transform-data') ? (
-                          <>
-                            {/* Validate -> Transform Data */}
-                            {pipelineServices.some(s => s.name === 'transform-data') && (
-                              <path d="M 1005 285 L 1140 285" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
-                            )}
-
-                            {/* Validate -> External Transform */}
-                            {pipelineServices.some(s => s.name === 'external-transform') && (
-                              <path d="M 1005 285 L 1072.5 285 L 1072.5 165 L 1140 165" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
-                            )}
-
-                            {/* Bypass: Validate -> Common junction point before parallel split */}
-                            <path d="M 1005 285 L 1072.5 285 L 1072.5 360 L 1365 360 L 1365 285" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" />
-
-                            {/* External Transform Loop Back -> Python Validate */}
-                            {pipelineServices.some(s => s.name === 'external-transform') && (
-                              <path d="M 1252.5 120 L 1252.5 60 L 892.5 60 L 892.5 231" stroke="currentColor" fill="none" strokeWidth="2" className="text-blue-500/60" markerEnd="url(#arrow-blue)" />
-                            )}
-
-                            {/* Transform Data -> Junction point */}
-                            {pipelineServices.some(s => s.name === 'transform-data') && (
-                              <path d="M 1365 285 L 1365 285" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" />
-                            )}
-                          </>
-                        ) : (
-                          /* Directly Validate -> Junction point if no transform */
-                          <path d="M 1005 285 L 1365 285" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" />
-                        )}
-
-                        {/* Python Validate -> Informative Validation (Invalid) */}
-                        <path d="M 892.5 330 L 892.5 411" stroke="currentColor" fill="none" strokeWidth="2" className="text-status-critical/60" markerEnd="url(#arrow-red)" />
-                        <text x="905" y="375" className="text-xs fill-status-critical/80 font-mono font-bold tracking-widest">INVALID</text>
-
-                        {/* Parallel Split from Junction Point (1365, 285) */}
-                        <path d="M 1365 285 L 1432.5 285 L 1432.5 165 L 1500 165" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
-                        <path d="M 1365 285 L 1432.5 285 L 1432.5 405 L 1500 405" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/40" markerEnd="url(#arrow)" />
-
-                        {/* Rendering Nodes Helper */}
-                        {(() => {
-                          const renderNode = (name: string, x: number, y: number) => {
-                            const svc = pipelineServices.find(s => s.name === name);
-
-                            const nodeContent = (
-                              <div
-                                className={`w-full h-full rounded-md border flex flex-col justify-center gap-1.5 p-3 cursor-pointer
-                                  ${svc ? (svc.status === 'degraded' ? 'bg-status-critical/10 border-status-critical/50 shadow-[0_0_15px_rgba(255,0,0,0.15)]' :
-                                    svc.status === 'lagging' ? 'bg-status-warning/10 border-status-warning/50' :
-                                      'bg-card border-border shadow-sm') : 'bg-surface-1/30 border-dashed border-border/50 opacity-60'
-                                  } z-10 transition-colors hover:border-primary/50`}
-                              >
-                                <div className="flex items-center gap-2">
-                                  {svc ? <StatusDot status={svc.status} pulse className="w-3 h-3" /> : <div className="w-3 h-3 rounded-full bg-muted-foreground/30" />}
-                                  <span className="font-mono text-sm font-bold truncate text-foreground" title={name}>{name}</span>
-                                </div>
-                                {svc && (
-                                  <div className="flex items-center justify-between text-xs text-muted-foreground font-mono mt-1">
-                                    <span>{svc.replicas} pods</span>
-                                    <span>{svc.cpuLimit}m</span>
-                                  </div>
-                                )}
-                              </div>
-                            );
-
-                            if (!svc) return (
-                              <foreignObject key={name} x={x} y={y} width="225" height="90" className="overflow-visible pointer-events-auto">
-                                {nodeContent}
-                              </foreignObject>
-                            );
-
-                            return (
-                              <foreignObject key={name} x={x} y={y} width="225" height="90" className="overflow-visible pointer-events-auto">
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    {nodeContent}
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-64 p-4 space-y-4" side="top">
-                                    <div className="flex items-center gap-2 border-b border-border pb-2">
-                                      <StatusDot status={svc.status} pulse />
-                                      <h4 className="font-mono font-bold text-sm">{svc.name}</h4>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                      <div className="space-y-1.5">
-                                        <div className="flex items-center justify-between">
-                                          <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Pods</label>
-                                          <span className="font-mono text-[10px] text-muted-foreground">{svc.replicas} / 16</span>
-                                        </div>
-                                        <Slider
-                                          value={[svc.replicas]}
-                                          min={0}
-                                          max={16}
-                                          step={1}
-                                          onValueChange={([v]) => updateService(svc.id, { replicas: v })}
-                                        />
-                                      </div>
-
-                                      <div className="space-y-1.5 pt-2 border-t border-border">
-                                        <div className="flex items-center justify-between">
-                                          <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">CPU Limit</label>
-                                          <Input
-                                            type="number"
-                                            value={svc.cpuLimit}
-                                            onChange={e => updateService(svc.id, { cpuLimit: Number(e.target.value) || 10 })}
-                                            className="h-6 w-16 text-[10px] font-mono px-1.5"
-                                          />
-                                        </div>
-                                        <Slider
-                                          value={[svc.cpuLimit]}
-                                          min={100}
-                                          max={4000}
-                                          step={100}
-                                          onValueChange={([v]) => updateService(svc.id, { cpuLimit: v })}
-                                        />
-                                      </div>
-
-                                      <div className="space-y-1.5 pt-2 border-t border-border">
-                                        <div className="flex items-center justify-between">
-                                          <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Mem Limit (Mi)</label>
-                                          <Input
-                                            type="number"
-                                            value={svc.memoryLimit}
-                                            onChange={e => updateService(svc.id, { memoryLimit: Number(e.target.value) || 16 })}
-                                            className="h-6 w-16 text-[10px] font-mono px-1.5"
-                                          />
-                                        </div>
-                                        <Slider
-                                          value={[svc.memoryLimit]}
-                                          min={128}
-                                          max={8192}
-                                          step={128}
-                                          onValueChange={([v]) => updateService(svc.id, { memoryLimit: v })}
-                                        />
-                                      </div>
-                                    </div>
-                                  </PopoverContent>
-                                </Popover>
-                              </foreignObject>
-                            );
-                          };
-                          return (
-                            <>
-                              {/* Sources */}
-                              {pipelineServices.some(s => s.name === 'push-data') && renderNode('push-data', 60, 120)}
-                              {pipelineServices.some(s => s.name === 'kafka-consumer') && renderNode('kafka-consumer', 60, 240)}
-                              {/* Scheduler is disabled/grayed out visually */}
-                              <foreignObject x={60} y={360} width="225" height="90" className="overflow-visible pointer-events-auto">
-                                <div className="w-full h-full rounded-md border flex flex-col justify-center gap-1.5 p-3 bg-surface-1/30 border-dashed border-border/50 opacity-60 z-10">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-muted-foreground/30" />
-                                    <span className="font-mono text-sm font-bold truncate text-muted-foreground" title="scheduler">scheduler</span>
-                                  </div>
-                                  <div className="text-xs italic font-mono mt-1">cannot be adjusted per pipeline</div>
-                                </div>
-                              </foreignObject>
-
-                              {/* Get Data */}
-                              {renderNode('get-data', 420, 360)}
-                              {/* Validate */}
-                              {renderNode('python-validate', 780, 240)}
-                              {renderNode('informative-validation', 780, 420)}
-
-                              {/* Transform (Optional) */}
-                              {pipelineServices.some(s => s.name === 'external-transform' || s.name === 'transform-data') && (
-                                <>
-                                  {pipelineServices.some(s => s.name === 'external-transform') && renderNode('external-transform', 1140, 120)}
-                                  {pipelineServices.some(s => s.name === 'transform-data') && renderNode('transform-data', 1140, 240)}
-                                </>
-                              )}
-
-                              {/* Publish & Sink (Parallel) */}
-                              {renderNode('publish', 1500, 120)}
-                              {renderNode('sink-data', 1500, 360)}
-                            </>
-                          );
-                        })()}
-                      </svg>
                     </div>
                   </div>
-                </TabsContent>
-
-                <TabsContent value="groups" className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium flex items-center gap-2">
-                      Pipeline Groups
-                      <span className="text-xs text-muted-foreground font-mono bg-muted/50 px-2 py-0.5 rounded-full">
-                        Total: {pipelineGroups.length}
-                      </span>
-                    </h3>
-                    <Dialog open={isCreateGroupOpen} onOpenChange={setIsCreateGroupOpen}>
+                  <div className="flex items-center gap-2">
+                    <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button size="sm" className="gap-2"><Plus className="w-3.5 h-3.5" /> Add Group</Button>
+                        <Button variant="destructive" size="sm" className="h-9 gap-3 shadow-sm font-semibold">
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </Button>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>Assign New Group</DialogTitle>
+                          <DialogTitle>Confirm Deletion</DialogTitle>
                         </DialogHeader>
-                        <div className="space-y-4 py-4">
-                          <div className="space-y-2">
-                            <label className="text-xs font-medium">Group Name</label>
-                            <Input value={newGroupName} onChange={e => setNewGroupName(e.target.value)} placeholder="e.g. Data Science Team" />
-                          </div>
+                        <div className="py-6 text-sm text-muted-foreground">
+                          {pipelineGroups.length > 0 ? (
+                            <div className="p-4 bg-status-critical/10 border border-status-critical/20 rounded-lg text-status-critical">
+                              <strong>Restricted:</strong> This pipeline has {pipelineGroups.length} associated groups. Move or delete them before proceeding.
+                            </div>
+                          ) : (
+                            <p>Are you sure you want to delete <strong>{selected.name}</strong>? This action cannot be undone.</p>
+                          )}
                         </div>
                         <DialogFooter>
-                          <Button variant="outline" onClick={() => setIsCreateGroupOpen(false)}>Cancel</Button>
-                          <Button onClick={handleCreateGroup}>Assign</Button>
+                          <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
+                          <Button
+                            variant="destructive"
+                            disabled={pipelineGroups.length > 0}
+                            onClick={handleDeletePipeline}
+                          >
+                            Confirm Delete
+                          </Button>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
                   </div>
+                </div>
 
-                  <div className="relative max-w-sm">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                    <Input
-                      placeholder="Search groups in this pipeline..."
-                      value={groupSearch}
-                      onChange={e => setGroupSearch(e.target.value)}
-                      className="h-8 pl-8 text-xs bg-surface-1"
-                    />
-                  </div>
+                {/* Content Container (Locked vertical height) */}
+                <div className="flex-1 min-h-0 p-3.5 space-y-3.5 overflow-hidden flex flex-col">
 
-                  {pipelineGroups.length === 0 ? (
-                    <div className="text-center py-12 border border-dashed rounded-lg bg-card/30 text-muted-foreground text-sm">
-                      No groups currently own this pipeline. Add one above.
-                    </div>
-                  ) : (
-                    <div className="grid gap-3">
-                      {pipelineGroups.map(group => (
-                        <div key={group.id} className="rounded-lg border border-border bg-card p-4 space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-medium">{group.name}</div>
+                  <Tabs defaultValue="overview" className="flex-1 min-h-0 flex flex-col space-y-2">
+                    <TabsList className="bg-muted/10 p-0.5 rounded-lg shrink-0 w-fit">
+                      <TabsTrigger value="overview" className="gap-2 px-5 h-7 text-[10px] font-bold uppercase tracking-tight data-[state=active]:bg-background data-[state=active]:shadow-sm">Overview</TabsTrigger>
+                      <TabsTrigger value="groups" className="gap-2 px-5 h-7 text-[10px] font-bold uppercase tracking-tight data-[state=active]:bg-background data-[state=active]:shadow-sm">Groups ({pipelineGroups.length})</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="overview" className="flex-1 min-h-0 m-0">
+                      <div className="h-full rounded-xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
+                        <div className="w-full bg-muted/5 border-b border-border/50 py-1.5 px-4 flex items-center justify-between shrink-0">
+                          <h3 className="text-[9px] font-mono font-bold uppercase tracking-[0.25em] text-muted-foreground/40 flex items-center gap-2">
+                            <RotateCcw className="w-3 h-3 text-primary/30 animate-spin-slow" />
+                            System Architecture
+                          </h3>
+                        </div>
+                        <div className="flex-1 bg-muted/5 flex items-center justify-center p-2 overflow-hidden">
+                          <svg viewBox="0 0 920 600" className="w-full h-auto pointer-events-none max-w-[1000px]" style={{ zIndex: 0 }}>
+                            <defs>
+                              <marker id="arrow" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
+                                <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" className="text-muted-foreground/50" />
+                              </marker>
+                              <marker id="arrow-red" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
+                                <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" className="text-status-critical/80" />
+                              </marker>
+                              <marker id="arrow-blue" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
+                                <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" className="text-blue-500/80" />
+                              </marker>
+                            </defs>
+                            {/* SVG Flow Contents */}
+                            {(() => {
+                              const renderNode = (svcName: string, x: number, y: number) => {
+                                const svc = pipelineServices.find(s => s.name === svcName);
+                                return (
+                                  <foreignObject key={svcName} x={x} y={y} width="180" height="150" className="overflow-visible pointer-events-auto">
+                                    <div className={`w-full h-full rounded-xl border flex flex-col justify-center gap-2 px-5 py-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg
+                                      ${svc ? (() => {
+                                        const latestLag = (() => {
+                                          const l = metrics.filter(m => m.pipelineId === selected.id && m.serviceId === svc.id && m.type === 'kafka_lag');
+                                          return l.length > 0 ? l[l.length - 1].value : 0;
+                                        })();
+                                        const lagThreshold = Number(import.meta.env.VITE_KAFKA_LAG_THRESHOLD) || 1000;
+                                        const effectiveStatus = svc.status === 'degraded' ? 'degraded' : (latestLag > lagThreshold ? 'lagging' : 'healthy');
+
+                                        return effectiveStatus === 'degraded' ? 'bg-status-critical/5 border-status-critical/40 shadow-[0_0_15px_rgba(255,0,0,0.05)]' :
+                                          effectiveStatus === 'lagging' ? 'bg-status-warning/5 border-status-warning/40' :
+                                            'bg-card border-border shadow-sm';
+                                      })() : 'bg-muted/10 border-dashed border-border/40 opacity-40'}`}>
+                                      <div className="flex items-center justify-between border-b border-border/30 pb-1.5 mb-1">
+                                        <span className="font-mono text-[10px] font-black underline decoration-primary/20 underline-offset-4 truncate text-foreground/90 uppercase tracking-tight">{svcName}</span>
+                                        {svc ? (() => {
+                                          const latestLag = (() => {
+                                            const l = metrics.filter(m => m.pipelineId === selected.id && m.serviceId === svc.id && m.type === 'kafka_lag');
+                                            return l.length > 0 ? l[l.length - 1].value : 0;
+                                          })();
+                                          const lagThreshold = Number(import.meta.env.VITE_KAFKA_LAG_THRESHOLD) || 1000;
+                                          const effectiveStatus = svc.status === 'degraded' ? 'degraded' : (latestLag > lagThreshold ? 'lagging' : 'healthy');
+                                          return <StatusDot status={effectiveStatus} pulse size="xs" />;
+                                        })() : <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/20" />}
+                                      </div>
+                                      {svc && (() => {
+                                        const latestLag = (() => {
+                                          const l = metrics.filter(m => m.pipelineId === selected.id && m.serviceId === svc.id && m.type === 'kafka_lag');
+                                          return l.length > 0 ? l[l.length - 1].value : 0;
+                                        })();
+
+                                        const lagThreshold = Number(import.meta.env.VITE_KAFKA_LAG_THRESHOLD) || 1000;
+                                        const effectiveStatus = svc.status === 'degraded' ? 'degraded' : (latestLag > lagThreshold ? 'lagging' : 'healthy');
+
+                                        return (
+                                          <div className="flex flex-col text-[11px] text-muted-foreground font-mono gap-1.5">
+                                            <div className="flex items-center justify-between">
+                                              <span className="uppercase text-[8px] font-black tracking-tighter text-primary/80">Health</span>
+                                              <span className={`font-bold text-[10px] px-1.5 py-0.5 rounded-[2px] ${effectiveStatus === 'degraded' ? 'text-status-critical bg-status-critical/10' : effectiveStatus === 'lagging' ? 'text-status-warning bg-status-warning/10' : 'text-status-healthy bg-status-healthy/10'}`}>
+                                                {effectiveStatus.toUpperCase()}
+                                              </span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                              <span className="uppercase text-[8px] font-black tracking-tighter text-primary/80">Kafka Lag</span>
+                                              <span className="font-bold text-[11px] text-foreground/80 tabular-nums">
+                                                {latestLag.toLocaleString()}
+                                              </span>
+                                            </div>
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              className="h-6.5 w-full mt-1.5 gap-1.5 px-2 text-[9px] font-bold uppercase tracking-wider bg-primary/5 border-primary/20 hover:bg-primary/10 text-primary transition-all shadow-none hvr-shrink"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                toast.info(`Rollout of ${svcName} initiated.`);
+                                                updateService(svc.id, { status: 'degraded' });
+                                                setTimeout(() => updateService(svc.id, { status: 'healthy' }), 1500);
+                                              }}
+                                            >
+                                              <RotateCcw className="w-2.5 h-2.5" />
+                                              Rollout
+                                            </Button>
+                                          </div>
+                                        );
+                                      })()}
+                                    </div>
+                                  </foreignObject>
+                                );
+                              };
+                              return (
+                                <>
+                                  <path d="M 200 105 L 225 105 L 225 295 L 250 295" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 200 295 L 250 295" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 200 485 L 225 485 L 225 295 L 250 295" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 430 295 L 480 295" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 430 295 L 455 295 L 455 105 L 480 105" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 430 295 L 455 295 L 455 390 L 685 390 L 685 295" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" />
+                                  <path d="M 340 370 L 340 410" stroke="currentColor" fill="none" strokeWidth="2" className="text-status-critical/40" markerEnd="url(#arrow-red)" />
+                                  <path d="M 660 295 L 685 295 L 685 105 L 710 105" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 660 295 L 685 295 L 685 485 L 710 485" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 570 30 L 570 10 L 340 10 L 340 220" stroke="currentColor" fill="none" strokeWidth="2" className="text-blue-500/40" markerEnd="url(#arrow-blue)" />
+
+                                  {renderNode('push-data', 20, 30)}
+                                  {renderNode('kafka-consumer', 20, 220)}
+                                  {renderNode('get-data', 20, 410)}
+                                  {renderNode('python-validate', 250, 220)}
+                                  {renderNode('informative-validation', 250, 410)}
+                                  {renderNode('external-transform', 480, 30)}
+                                  {renderNode('transform-data', 480, 220)}
+                                  {renderNode('publish', 710, 30)}
+                                  {renderNode('sink-data', 710, 410)}
+                                </>
+                              );
+                            })()}
+                          </svg>
+                        </div>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="groups" className="flex-1 min-h-0 overflow-auto custom-scrollbar pr-2 space-y-6">
+                      <div className="flex items-center justify-between bg-muted/20 p-4 rounded-xl border border-border">
+                        <div className="flex flex-col gap-1">
+                          <h3 className="font-bold text-sm">Associated Owner Groups</h3>
+                          <p className="text-xs text-muted-foreground">Manage service ownership and permissions for this pipeline.</p>
+                        </div>
+                        <Dialog open={isCreateGroupOpen} onOpenChange={setIsCreateGroupOpen}>
+                          <DialogTrigger asChild>
+                            <Button size="sm" className="gap-2 shadow-sm font-semibold"><Plus className="w-3.5 h-3.5" /> Assign Group</Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader><DialogTitle>Assign New Group</DialogTitle></DialogHeader>
+                            <div className="space-y-4 py-4">
+                              <div className="space-y-2">
+                                <label className="text-xs font-medium">Group Name</label>
+                                <Input value={newGroupName} onChange={e => setNewGroupName(e.target.value)} placeholder="e.g. Core Infra" />
+                              </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                              <Select
-                                value={group.primaryPipelineId}
-                                onValueChange={(newPipeId) => {
-                                  if (newPipeId !== group.primaryPipelineId) {
-                                    handleMoveGroup(group.id, newPipeId);
-                                  }
-                                }}
-                              >
-                                <SelectTrigger className="h-8 w-[180px] text-xs">
-                                  <div className="flex items-center gap-2"><ArrowRightLeft className="w-3 h-3 text-muted-foreground" /> <SelectValue /></div>
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {primaryPipelines.map(p => (
-                                    <SelectItem key={p.id} value={p.id} className="text-xs">{p.name}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                onClick={() => setGroupToDelete({ id: group.id, name: group.name })}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                            <DialogFooter>
+                              <Button variant="outline" onClick={() => setIsCreateGroupOpen(false)}>Cancel</Button>
+                              <Button onClick={handleCreateGroup}>Confirm Assign</Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+
+                      <div className="relative max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Filter groups..."
+                          value={groupSearch}
+                          onChange={e => setGroupSearch(e.target.value)}
+                          className="h-9 pl-9 text-xs"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                        {pipelineGroups.map(group => (
+                          <div key={group.id} className="group relative rounded-xl border border-border bg-card p-5 hover:border-primary/50 transition-all shadow-sm">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2.5 rounded-lg bg-muted group-hover:bg-primary/5 transition-colors">
+                                  <Users className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-bold">{group.name}</span>
+                                  <span className="text-[10px] text-muted-foreground font-mono">ID: {group.id.slice(0, 8)}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Select
+                                  value={group.primaryPipelineId}
+                                  onValueChange={(v) => handleMoveGroup(group.id, v)}
+                                >
+                                  <SelectTrigger className="h-8 w-32 text-[10px] bg-muted/50 border-none"><ArrowRightLeft className="w-3 h-3 mr-1" /><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    {primaryPipelines.map(p => (
+                                      <SelectItem key={p.id} value={p.id} className="text-xs">{p.name}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                  onClick={() => setGroupToDelete({ id: group.id, name: group.name })}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-
-
-                          {secondaryPipelines.length > 0 && (
-                            <div className="pt-2 border-t border-border">
-                              <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider mb-2">Secondary Pipelines</div>
+                            <div className="mt-6 pt-4 border-t border-border/40">
+                              <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest block mb-3">Linked Secondary Pipelines</span>
                               <div className="flex flex-wrap gap-2">
                                 {secondaryPipelines.map(sp => {
                                   const isActive = group.secondaryPipelineIds.includes(sp.id);
@@ -670,154 +553,71 @@ export default function PipelinesPage() {
                                     <button
                                       key={sp.id}
                                       onClick={() => handleToggleSecondary(group.id, sp.id, group.secondaryPipelineIds)}
-                                      className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${isActive
-                                        ? 'bg-primary/15 border-primary/50 text-primary'
-                                        : 'bg-surface-1 border-border text-muted-foreground hover:border-primary/30'
-                                        }`}
+                                      className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-tight transition-all border
+                                        ${isActive
+                                          ? 'bg-primary/10 border-primary/30 text-primary shadow-sm'
+                                          : 'bg-muted/30 border-transparent text-muted-foreground hover:bg-muted/50'}`}
                                     >
                                       {sp.name}
                                     </button>
                                   );
                                 })}
+                                {secondaryPipelines.length === 0 && (
+                                  <span className="text-xs text-muted-foreground/40 italic">No secondary pipelines defined</span>
+                                )}
                               </div>
                             </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </TabsContent>
-
-                {/* Delete Group Confirmation Dialog */}
-                <Dialog open={!!groupToDelete} onOpenChange={(open) => !open && setGroupToDelete(null)}>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Delete Group: {groupToDelete?.name}</DialogTitle>
-                    </DialogHeader>
-                    <div className="py-4">
-                      <p className="text-sm text-muted-foreground">Are you sure you want to delete this owner group? This action cannot be undone.</p>
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setGroupToDelete(null)}>Cancel</Button>
-                      <Button variant="destructive" onClick={async () => {
-                        if (groupToDelete) {
-                          await deleteGroup(groupToDelete.id);
-                          setGroupToDelete(null);
-                          toast.success('Group deleted');
-                        }
-                      }}>Delete</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-
-                <TabsContent value="workloads" className="space-y-6">
-                  {/* Individual Services */}
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {workloadServices.map(svc => (
-                      <div key={svc.id} className="rounded-lg border border-border bg-card p-4 space-y-4">
-                        <div className="flex items-center justify-between border-b border-border pb-3">
-                          <div className="flex items-center gap-2">
-                            <StatusDot status={svc.status} pulse />
-                            <span className="font-mono font-bold text-sm">{svc.name}</span>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-[10px] gap-1.5 px-2.5"
-                            onClick={() => {
-                              toast.info(`Rolling out ${svc.name}...`, { description: 'Deployment rollout initiated.' });
-                              updateService(svc.id, { status: 'degraded' });
-                              setTimeout(() => updateService(svc.id, { status: 'healthy' }), 2000);
-                            }}
-                          >
-                            <RotateCcw className="w-3 h-3" />
-                            Rollout
-                          </Button>
-                        </div>
-
-                        {/* Pods */}
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Active Pods</label>
-                            <div className="flex items-center gap-2">
-                              <Button variant="outline" size="icon" className="h-5 w-5 rounded min-w-[20px] p-0 flex items-center justify-center" onClick={() => updateService(svc.id, { replicas: Math.max(0, svc.replicas - 1) })}>-</Button>
-                              <span className="font-mono text-[10px] text-muted-foreground px-1.5 py-0.5 rounded bg-surface-1 min-w-[40px] text-center">{svc.replicas} / 16</span>
-                              <Button variant="outline" size="icon" className="h-5 w-5 rounded min-w-[20px] p-0 flex items-center justify-center" onClick={() => updateService(svc.id, { replicas: Math.min(16, svc.replicas + 1) })}>+</Button>
-                            </div>
-                          </div>
-                          <div className="flex flex-wrap gap-1.5 p-2 rounded bg-surface-1/50 border border-border min-h-[36px]">
-                            {Array.from({ length: svc.replicas }).map((_, i) => (
-                              <div key={i} className={`w - 3 h - 3 rounded - full ${svc.status === 'healthy' ? 'bg-status-healthy' : 'bg-status-degraded'} shadow - [0_0_8px_rgba(0, 0, 0, 0.2)]`} title={`Pod ${i + 1} `} />
-                            ))}
-                            {svc.replicas === 0 && <span className="text-[10px] text-muted-foreground italic my-auto">Scaled to zero (0) pods.</span>}
-                          </div>
-                          <Slider
-                            value={[svc.replicas]}
-                            min={0}
-                            max={16}
-                            step={1}
-                            onValueChange={([v]) => updateService(svc.id, { replicas: v })}
-                            className="w-full pt-2"
-                          />
-                        </div>
-
-                        {/* CPU Limit */}
-                        <div className="space-y-2 mt-4 pt-4 border-t border-border">
-                          <div className="flex items-center justify-between">
-                            <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">CPU Limit</label>
-                            <div className="flex items-center gap-2">
-                              <Button variant="outline" size="icon" className="h-5 w-5 rounded min-w-[20px] p-0 flex items-center justify-center" onClick={() => updateService(svc.id, { cpuLimit: Math.max(100, svc.cpuLimit - 100) })}>-</Button>
-                              <span className="font-mono text-[10px] text-muted-foreground px-1.5 py-0.5 rounded bg-surface-1 min-w-[50px] text-center">{svc.cpuLimit}m</span>
-                              <Button variant="outline" size="icon" className="h-5 w-5 rounded min-w-[20px] p-0 flex items-center justify-center" onClick={() => updateService(svc.id, { cpuLimit: Math.min(4000, svc.cpuLimit + 100) })}>+</Button>
-                            </div>
-                          </div>
-                          <Slider
-                            value={[svc.cpuLimit]}
-                            min={100}
-                            max={4000}
-                            step={100}
-                            onValueChange={([v]) => updateService(svc.id, { cpuLimit: v })}
-                            className="w-full pt-1"
-                          />
-                        </div>
-
-                        {/* Memory Limit */}
-                        <div className="space-y-2 mt-4 pt-4 border-t border-border">
-                          <div className="flex items-center justify-between">
-                            <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Memory Limit</label>
-                            <div className="flex items-center gap-2">
-                              <Button variant="outline" size="icon" className="h-5 w-5 rounded min-w-[20px] p-0 flex items-center justify-center" onClick={() => updateService(svc.id, { memoryLimit: Math.max(128, svc.memoryLimit - 128) })}>-</Button>
-                              <span className="font-mono text-[10px] text-muted-foreground px-1.5 py-0.5 rounded bg-surface-1 min-w-[50px] text-center">{svc.memoryLimit}Mi</span>
-                              <Button variant="outline" size="icon" className="h-5 w-5 rounded min-w-[20px] p-0 flex items-center justify-center" onClick={() => updateService(svc.id, { memoryLimit: Math.min(8192, svc.memoryLimit + 128) })}>+</Button>
-                            </div>
-                          </div>
-                          <Slider
-                            value={[svc.memoryLimit]}
-                            min={128}
-                            max={8192}
-                            step={128}
-                            onValueChange={([v]) => updateService(svc.id, { memoryLimit: v })}
-                            className="w-full pt-1"
-                          />
-                        </div>
-
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </motion.div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex items-center justify-center h-full text-muted-foreground text-sm font-mono"
-            >
-              Select a pipeline to view details
-            </motion.div>
-          )}
-        </AnimatePresence>
+
+                      {pipelineGroups.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-20 bg-muted/5 rounded-2xl border-2 border-dashed border-border/50">
+                          <Users className="w-12 h-12 text-muted-foreground/20 mb-4" />
+                          <span className="text-sm text-muted-foreground">No groups associated with this pipeline</span>
+                        </div>
+                      )}
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </motion.div>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center p-20 text-center">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-muted/20 to-muted/5 border border-border/40 flex items-center justify-center mb-6 shadow-sm">
+                  <Server className="w-8 h-8 opacity-20 text-primary" />
+                </div>
+                <h3 className="text-base font-bold text-foreground/80 tracking-tight">No Pipeline Selected</h3>
+                <p className="text-xs text-muted-foreground max-w-[200px] mt-2 leading-relaxed">Select an active pipeline from the registry to monitor its health and flow.</p>
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
-    </div >
+
+      {/* Delete Group Confirmation Dialog */}
+      <Dialog open={!!groupToDelete} onOpenChange={(open) => !open && setGroupToDelete(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Delete Group</DialogTitle></DialogHeader>
+          <div className="py-6 text-sm">
+            Are you sure you want to delete <strong>{groupToDelete?.name}</strong>?
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setGroupToDelete(null)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (groupToDelete) {
+                  await deleteGroup(groupToDelete.id);
+                  setGroupToDelete(null);
+                  toast.success('Group deleted successfully');
+                }
+              }}
+            >
+              Confirm Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

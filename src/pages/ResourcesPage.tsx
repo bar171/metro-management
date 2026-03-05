@@ -137,7 +137,6 @@ export default function ServicesPage() {
           <TableBody>
             {filteredServices.map(svc => (
               <ServiceRow
-                key={svc.id}
                 service={svc}
                 isRolling={rollingId === svc.id}
                 onRollout={handleRollout}

@@ -43,7 +43,7 @@ export function ServiceFilters({
             )}
 
             {serviceType !== 'global' && (
-                <Select value={pipelineId} onValueChange={onPipelineChange} disabled={serviceType !== 'pipeline'}>
+                <Select value={pipelineId} onValueChange={onPipelineChange}>
                     <SelectTrigger className="h-8 w-[180px] text-xs">
                         <SelectValue placeholder="All Pipelines" />
                     </SelectTrigger>

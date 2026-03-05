@@ -1,11 +1,25 @@
 import { cn } from '@/lib/utils';
 import type { ServiceStatus, Priority, Severity } from '@/types';
 
-export function StatusDot({ status, pulse = false, className }: { status: ServiceStatus; pulse?: boolean; className?: string }) {
+export function StatusDot({
+  status,
+  pulse = false,
+  size = 'md',
+  className
+}: {
+  status: ServiceStatus;
+  pulse?: boolean;
+  size?: 'xs' | 'sm' | 'md' | 'lg';
+  className?: string
+}) {
   return (
     <span
       className={cn(
-        'inline-block w-2 h-2 rounded-full',
+        'inline-block rounded-full shrink-0',
+        size === 'xs' && 'w-1.5 h-1.5',
+        size === 'sm' && 'w-2 h-2',
+        size === 'md' && 'w-3 h-3',
+        size === 'lg' && 'w-5 h-5',
         status === 'healthy' && 'bg-status-healthy',
         status === 'degraded' && 'bg-status-degraded',
         status === 'lagging' && 'bg-status-lagging',
