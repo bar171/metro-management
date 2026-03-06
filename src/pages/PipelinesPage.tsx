@@ -450,19 +450,19 @@ export default function PipelinesPage() {
                                   <path d="M 165 345 L 197.5 345 L 197.5 190 L 230 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
                                   <path d="M 390 190 L 420 190 L 420 230 L 450 230" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
                                   <path d="M 390 190 L 420 190 L 420 115 L 450 115" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
-                                  <path d="M 390 190 L 420 190 L 420 300 L 640 300 L 640 230" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" />
-                                  <path d="M 310 245 L 310 285" stroke="currentColor" fill="none" strokeWidth="2" className="text-status-critical/40" markerEnd="url(#arrow-red)" />
-                                  <path d="M 610 230 L 640 230 L 640 115 L 670 115" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
-                                  <path d="M 610 230 L 640 230 L 640 345 L 670 345" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 390 190 L 420 190 L 420 320 L 640 320 L 640 230" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" />
+                                  <path d="M 310 245 L 310 290" stroke="currentColor" fill="none" strokeWidth="2" className="text-status-critical/40" markerEnd="url(#arrow-red)" />
+                                  <path d="M 610 240 L 640 240 L 640 115 L 670 115" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 610 240 L 640 240 L 640 345 L 670 345" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
                                   <path d="M 550 60 L 550 25 L 310 25 L 310 135" stroke="currentColor" fill="none" strokeWidth="2" className="text-blue-500/40" markerEnd="url(#arrow-blue)" />
 
                                   {renderNode('push-data', 5, 30)}
                                   {renderNode('kafka-consumer', 5, 160)}
                                   {renderNode('get-data', 5, 290)}
                                   {renderNode('python-validate', 230, 135)}
-                                  {renderNode('informative-validation', 230, 285)}
+                                  {renderNode('informative-validation', 230, 290)}
                                   {renderNode('external-transform', 450, 60)}
-                                  {renderNode('transform-data', 450, 175)}
+                                  {renderNode('transform-data', 450, 190)}
                                   {renderNode('publish', 670, 60)}
                                   {renderNode('sink-data', 670, 290)}
                                 </>

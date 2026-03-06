@@ -85,7 +85,7 @@ export default function Dashboard() {
         <div className="lg:col-span-2 rounded-lg border border-border bg-card flex flex-col min-h-0">
           <div className="px-4 py-3 border-b border-border flex items-center justify-between shrink-0">
             <span
-              className="text-sm font-medium cursor-pointer select-none transition-opacity hover:opacity-80"
+              className="text-sm font-medium cursor-pointer select-none transition-opacity"
               onClick={() => {
                 setAlertClickCount(prev => {
                   const newCount = prev + 1;
