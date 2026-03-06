@@ -445,7 +445,7 @@ export default function PipelinesPage() {
                                   <path d="M 390 155 L 420 155 L 420 260 L 450 260" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
                                   <path d="M 390 155 L 420 155 L 420 115 L 450 115" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
                                   <path d="M 390 155 L 420 155 L 420 330 L 640 330 L 640 230" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" />
-                                  <path d="M 310 200 L 310 240" stroke="currentColor" fill="none" strokeWidth="2" className="text-status-critical/40" markerEnd="url(#arrow-red)" />
+                                  <path d="M 310 210 L 310 240" stroke="currentColor" fill="none" strokeWidth="2" className="text-status-critical/40" markerEnd="url(#arrow-red)" />
                                   <path d="M 610 240 L 640 240 L 640 75 L 670 75" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
                                   <path d="M 610 240 L 640 240 L 640 210 L 670 210" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
                                   <path d="M 535 60 L 535 25 L 310 25 L 310 100" stroke="currentColor" fill="none" strokeWidth="2" className="text-blue-500/40" markerEnd="url(#arrow-blue)" />
