@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { TableCell } from '@/components/ui/table';
 import { StatusDot } from '@/components/shared/StatusIndicators';
 import { Plus, Minus, RotateCcw } from 'lucide-react';
 import {
@@ -61,14 +60,14 @@ export function ServiceRow({
     };
 
     return (
-        <motion.tr
-            className={`border-b border-border hover:bg-surface-1 transition-colors text-xs ${isRolling ? 'animate-pod-roll' : ''}`}
+        <motion.div
+            className={`grid grid-cols-[60px_1fr_1fr_140px_240px_120px] items-center px-4 py-2 border-b border-border hover:bg-surface-1 transition-colors text-xs ${isRolling ? 'animate-pod-roll' : ''}`}
             layout
         >
-            <TableCell><StatusDot status={service.status} pulse /></TableCell>
-            <TableCell className="font-mono font-medium">{service.name}</TableCell>
-            <TableCell className="text-muted-foreground">{service.pipelineName}</TableCell>
-            <TableCell>
+            <div className="flex justify-center"><StatusDot status={service.status} pulse /></div>
+            <div className="font-mono font-medium truncate pr-4">{service.name}</div>
+            <div className="text-muted-foreground truncate pr-4">{service.pipelineName}</div>
+            <div>
                 <div className="flex items-center justify-center gap-1">
                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleScale(-1)}>
                         <Minus className="h-3 w-3" />
@@ -78,8 +77,8 @@ export function ServiceRow({
                         <Plus className="h-3 w-3" />
                     </Button>
                 </div>
-            </TableCell>
-            <TableCell>
+            </div>
+            <div>
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1 w-20">
                         <Input
@@ -100,8 +99,8 @@ export function ServiceRow({
                         <span className="text-[10px] text-muted-foreground font-mono">Mi</span>
                     </div>
                 </div>
-            </TableCell>
-            <TableCell className="text-right">
+            </div>
+            <div className="text-right flex justify-end">
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button variant="ghost" size="sm" className="h-7 text-[10px] gap-1">
@@ -121,7 +120,7 @@ export function ServiceRow({
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
-            </TableCell>
-        </motion.tr>
+            </div>
+        </motion.div>
     );
 }

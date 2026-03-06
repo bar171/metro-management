@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { ServiceFilters } from '@/components/ServiceFilters';
 import { ServiceRow } from '@/components/ServiceRow';
@@ -79,9 +78,9 @@ export default function ServicesPage() {
   };
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-6 gap-4 flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden">
       {/* Header Section */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between shrink-0">
         <div>
           <h2 className="text-lg font-semibold">Services</h2>
           <p className="text-xs text-muted-foreground font-mono">
@@ -122,28 +121,31 @@ export default function ServicesPage() {
       </div>
 
       {/* Table Section */}
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-surface-1">
-              <TableHead className="text-[10px] font-mono uppercase w-8">Status</TableHead>
-              <TableHead className="text-[10px] font-mono uppercase">Service</TableHead>
-              <TableHead className="text-[10px] font-mono uppercase">Pipeline</TableHead>
-              <TableHead className="text-[10px] font-mono uppercase text-center">Replicas</TableHead>
-              <TableHead className="text-[10px] font-mono uppercase">Resources</TableHead>
-              <TableHead className="text-[10px] font-mono uppercase text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredServices.map(svc => (
+      <div className="rounded-lg border border-border bg-card flex-1 min-h-0 flex flex-col overflow-hidden">
+        {/* Independent Header */}
+        <div className="grid grid-cols-[60px_1fr_1fr_140px_240px_120px] items-center px-4 py-3 bg-surface-1 border-b border-border shrink-0 z-10 pr-[20px]">
+          <div className="text-[10px] font-mono uppercase text-muted-foreground font-medium text-center">Status</div>
+          <div className="text-[10px] font-mono uppercase text-muted-foreground font-medium">Service</div>
+          <div className="text-[10px] font-mono uppercase text-muted-foreground font-medium">Pipeline</div>
+          <div className="text-[10px] font-mono uppercase text-muted-foreground font-medium text-center">Replicas</div>
+          <div className="text-[10px] font-mono uppercase text-muted-foreground font-medium">Resources</div>
+          <div className="text-[10px] font-mono uppercase text-muted-foreground font-medium text-right pr-2">Actions</div>
+        </div>
+
+        {/* Scrollable Body */}
+        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col">
+          {filteredServices.length === 0 ? (
+            <div className="flex items-center justify-center p-8 text-xs text-muted-foreground font-mono">No services found matching filters.</div>
+          ) : (
+            filteredServices.map(svc => (
               <ServiceRow
                 service={svc}
                 isRolling={rollingId === svc.id}
                 onRollout={handleRollout}
               />
-            ))}
-          </TableBody>
-        </Table>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
