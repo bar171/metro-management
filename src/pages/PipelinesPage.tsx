@@ -349,12 +349,6 @@ export default function PipelinesPage() {
 
                     <TabsContent value="overview" className="flex-1 min-h-0 m-0">
                       <div className="h-full rounded-xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
-                        <div className="w-full bg-muted/5 border-b border-border/50 py-1.5 px-4 flex items-center justify-between shrink-0">
-                          <h3 className="text-[9px] font-mono font-bold uppercase tracking-[0.25em] text-muted-foreground/40 flex items-center gap-2">
-                            <RotateCcw className="w-3 h-3 text-primary/30 animate-spin-slow" />
-                            System Architecture
-                          </h3>
-                        </div>
                         <div className="flex-1 bg-muted/5 flex items-center justify-center p-2 overflow-hidden">
                           <svg viewBox="0 0 880 430" className="w-full h-auto pointer-events-none max-w-[1000px]" style={{ zIndex: 0 }}>
                             <defs>
@@ -445,25 +439,25 @@ export default function PipelinesPage() {
                               };
                               return (
                                 <>
-                                  <path d="M 165 90 L 197.5 90 L 197.5 190 L 230 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
-                                  <path d="M 165 220 L 197.5 220 L 197.5 190 L 230 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
-                                  <path d="M 165 345 L 197.5 345 L 197.5 190 L 230 190" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
-                                  <path d="M 390 150 L 420 150 L 420 230 L 450 230" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
-                                  <path d="M 390 150 L 420 150 L 420 115 L 450 115" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
-                                  <path d="M 390 150 L 420 150 L 420 320 L 640 320 L 640 230" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" />
-                                  <path d="M 310 200 L 310 220" stroke="currentColor" fill="none" strokeWidth="2" className="text-status-critical/40" markerEnd="url(#arrow-red)" />
-                                  <path d="M 610 240 L 640 240 L 640 90 L 670 90" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 165 75 L 197.5 75 L 197.5 155 L 230 155" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 165 215 L 197.5 215 L 197.5 155 L 230 155" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 165 355 L 197.5 355 L 197.5 155 L 230 155" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 390 155 L 420 155 L 420 260 L 450 260" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 390 155 L 420 155 L 420 115 L 450 115" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
+                                  <path d="M 390 155 L 420 155 L 420 330 L 640 330 L 640 230" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" />
+                                  <path d="M 310 200 L 310 240" stroke="currentColor" fill="none" strokeWidth="2" className="text-status-critical/40" markerEnd="url(#arrow-red)" />
+                                  <path d="M 610 240 L 640 240 L 640 75 L 670 75" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
                                   <path d="M 610 240 L 640 240 L 640 210 L 670 210" stroke="currentColor" fill="none" strokeWidth="2" className="text-muted-foreground/30" markerEnd="url(#arrow)" />
-                                  <path d="M 550 60 L 550 25 L 310 25 L 310 90" stroke="currentColor" fill="none" strokeWidth="2" className="text-blue-500/40" markerEnd="url(#arrow-blue)" />
+                                  <path d="M 535 60 L 535 25 L 310 25 L 310 100" stroke="currentColor" fill="none" strokeWidth="2" className="text-blue-500/40" markerEnd="url(#arrow-blue)" />
 
-                                  {renderNode('push-data', 5, 30)}
+                                  {renderNode('push-data', 5, 20)}
                                   {renderNode('kafka-consumer', 5, 160)}
-                                  {renderNode('get-data', 5, 290)}
-                                  {renderNode('python-validate', 230, 90)}
-                                  {renderNode('informative-validation', 230, 220)}
+                                  {renderNode('get-data', 5, 300)}
+                                  {renderNode('python-validate', 230, 100)}
+                                  {renderNode('informative-validation', 230, 240)}
                                   {renderNode('external-transform', 450, 60)}
-                                  {renderNode('transform-data', 450, 190)}
-                                  {renderNode('publish', 670, 30)}
+                                  {renderNode('transform-data', 450, 200)}
+                                  {renderNode('publish', 670, 20)}
                                   {renderNode('sink-data', 670, 160)}
                                 </>
                               );
