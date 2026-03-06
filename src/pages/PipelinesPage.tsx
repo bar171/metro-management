@@ -374,7 +374,7 @@ export default function PipelinesPage() {
                                 const svc = pipelineServices.find(s => s.name === svcName);
                                 return (
                                   <foreignObject key={svcName} x={x} y={y} width="160" height="110" className="overflow-visible pointer-events-auto">
-                                    <div className={`w-full h-full rounded border flex flex-col justify-center gap-1 p-2.5 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg
+                                    <div className={`w-full h-full rounded-xl border flex flex-col justify-center gap-1 px-3 py-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg
                                       ${svc ? (() => {
                                         const latestLag = (() => {
                                           const l = metrics.filter(m => m.pipelineId === selected.id && m.serviceId === svc.id && m.type === 'kafka_lag');
@@ -388,7 +388,7 @@ export default function PipelinesPage() {
                                             'bg-card border-border shadow-sm';
                                       })() : 'bg-muted/10 border-dashed border-border/40 opacity-40'}`}>
                                       <div className="flex items-center justify-between border-b border-border/30 pb-1.5 mb-1">
-                                        <span className="font-mono text-[10px] font-black underline decoration-primary/20 underline-offset-4 truncate text-foreground/90 uppercase tracking-tight">{svcName}</span>
+                                        <span className="font-mono text-[9.5px] font-black underline decoration-primary/20 underline-offset-4 truncate text-foreground/90 uppercase tracking-tight">{svcName}</span>
                                         {svc ? (() => {
                                           const latestLag = (() => {
                                             const l = metrics.filter(m => m.pipelineId === selected.id && m.serviceId === svc.id && m.type === 'kafka_lag');

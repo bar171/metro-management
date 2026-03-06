@@ -282,19 +282,27 @@ const BackfillPage = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">From Time</label>
-                                    <Input
-                                        type="datetime-local"
-                                        value={formData.fromTime}
-                                        onChange={(e) => setFormData({ ...formData, fromTime: e.target.value })}
-                                    />
+                                    <div className="relative w-full flex items-center">
+                                        <Input
+                                            type="datetime-local"
+                                            value={formData.fromTime}
+                                            onChange={(e) => setFormData({ ...formData, fromTime: e.target.value })}
+                                            className="relative z-10 bg-transparent text-sm cursor-text"
+                                        />
+                                        <Clock className="absolute right-3 w-4 h-4 text-muted-foreground z-0 pointer-events-none" />
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">To Time</label>
-                                    <Input
-                                        type="datetime-local"
-                                        value={formData.toTime}
-                                        onChange={(e) => setFormData({ ...formData, toTime: e.target.value })}
-                                    />
+                                    <div className="relative w-full flex items-center">
+                                        <Input
+                                            type="datetime-local"
+                                            value={formData.toTime}
+                                            onChange={(e) => setFormData({ ...formData, toTime: e.target.value })}
+                                            className="relative z-10 bg-transparent text-sm cursor-text"
+                                        />
+                                        <Clock className="absolute right-3 w-4 h-4 text-muted-foreground z-0 pointer-events-none" />
+                                    </div>
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -491,7 +499,7 @@ const BackfillPage = () => {
                                                                         type="number"
                                                                         value={valDaily}
                                                                         onChange={(e) => handleLimitChange(group.id, 'etlDailyTransportMaxSizeGb', e.target.value)}
-                                                                        className="h-8 max-w-[100px] transition-colors focus-visible:ring-purple-500"
+                                                                        className="h-8 max-w-[120px] transition-colors focus-visible:ring-purple-500"
                                                                         placeholder="No Limit"
                                                                     />
                                                                 </TableCell>
@@ -500,7 +508,7 @@ const BackfillPage = () => {
                                                                         type="number"
                                                                         value={valBackfillDays}
                                                                         onChange={(e) => handleLimitChange(group.id, 'etlBackfillLimitDays', e.target.value)}
-                                                                        className="h-8 max-w-[100px] transition-colors focus-visible:ring-purple-500"
+                                                                        className="h-8 max-w-[120px] transition-colors focus-visible:ring-purple-500"
                                                                         placeholder="No Limit"
                                                                     />
                                                                 </TableCell>

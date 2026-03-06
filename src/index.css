@@ -328,15 +328,23 @@
   }
 
   /* Date/Time Input Overrides */
+  input[type="datetime-local"] {
+    position: relative;
+    padding: 0 36px 0 12px;
+    /* space on right for icon */
+    height: 40px;
+    /* ensure consistent height */
+    box-sizing: border-box;
+  }
+
   input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-    filter: invert(0.8);
+    filter: invert(1);
     cursor: pointer;
-    background-color: transparent;
-    padding: 4px;
+    background: transparent;
     position: absolute;
-    right: 4px;
-    z-index: 10;
-    pointer-events: auto;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
   }
 }
 
