@@ -10,6 +10,7 @@ import { mockOpenShiftApi, type ClusterMetrics } from '@/lib/openshift';
 export default function Dashboard() {
   const { pipelines, services, metrics, logs, loading, envFilter } = useAppStore();
   const [clusterMetrics, setClusterMetrics] = useState<ClusterMetrics | null>(null);
+  const [alertClickCount, setAlertClickCount] = useState(0);
 
   useEffect(() => {
     mockOpenShiftApi.getClusterMetrics().then(setClusterMetrics);
@@ -50,36 +51,72 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold">Executive Overview</h2>
-        <p className="text-xs text-muted-foreground font-mono">Real-time ETL infrastructure status</p>
+    <div className="p-6 gap-6 flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden">
+      <div className="flex items-center justify-between shrink-0">
+        <div>
+          <h2 className="text-lg font-semibold">Metro Overview</h2>
+          <p className="text-xs text-muted-foreground font-mono">Real-time status</p>
+        </div>
       </div>
 
-      {/* KPI Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 shrink-0">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}>
-          <KpiTile label="Total Pipelines" value={filteredPipelines.length} subtitle={`${pipelines.filter(a => a.priority === 'critical').length} critical`} />
+          <KpiTile
+            label="Total Pipelines"
+            value={filteredPipelines.length}
+            subtitle={`${pipelines.filter(a => a.priority === 'critical').length} critical`}
+            variant={pipelines.filter(a => a.priority === 'critical').length > 0 ? 'critical' : 'default'}
+            icon={Activity}
+          />
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-          <KpiTile label="Total Pods" value={totalPods} variant="accent" />
+          <KpiTile label="Total Pods" value={totalPods} variant="accent" icon={Server} />
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <KpiTile label="Avg Kafka Lag" value={avgKafkaLag.toLocaleString()} variant={avgKafkaLag > 8000 ? 'warning' : 'default'} subtitle="messages" />
+          <KpiTile label="Avg Kafka Lag" value={avgKafkaLag.toLocaleString()} variant={avgKafkaLag > 5000 ? 'warning' : 'default'} subtitle="messages" icon={Zap} />
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-          <KpiTile label="DB Connections" value={dbConnections} />
+          <KpiTile label="DB Connections" value={dbConnections} variant={dbConnections > 1000 ? 'warning' : 'default'} icon={Activity} />
         </motion.div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-6 flex-1 min-h-0">
         {/* Live Feed */}
-        <div className="lg:col-span-2 rounded-lg border border-border bg-card">
-          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-            <span className="text-sm font-medium">Live Alert Feed</span>
+        <div className="lg:col-span-2 rounded-lg border border-border bg-card flex flex-col min-h-0">
+          <div className="px-4 py-3 border-b border-border flex items-center justify-between shrink-0">
+            <span
+              className="text-sm font-medium cursor-pointer select-none transition-opacity"
+              onClick={() => {
+                setAlertClickCount(prev => {
+                  const newCount = prev + 1;
+                  if (newCount >= 3) {
+                    toast.custom(() => (
+                      <div className="flex items-center gap-5 bg-yellow-400 text-yellow-950 px-6 py-5 rounded-2xl shadow-[0_0_60px_rgba(250,204,21,0.6)] border-4 border-yellow-500 transform animate-in slide-in-from-top-8 duration-500">
+                        <div className="text-5xl animate-bounce">⚠️</div>
+                        <div className="flex flex-col gap-1">
+                          <span className="font-black text-2xl tracking-[0.2em] uppercase text-yellow-900 border-b border-yellow-500/50 pb-1 whitespace-nowrap">
+                            Station Announcement
+                          </span>
+                          <span className="font-bold text-xl mt-1">
+                            Emanuel, please step behind the yellow line! 🚇
+                          </span>
+                        </div>
+                      </div>
+                    ), {
+                      duration: 6000,
+                      position: 'top-center',
+                    });
+                    return 0;
+                  }
+                  return newCount;
+                });
+              }}
+            >
+              Live Alert Feed
+            </span>
             <span className="w-2 h-2 rounded-full bg-status-healthy animate-pulse" />
           </div>
-          <div className="max-h-80 overflow-auto custom-scrollbar divide-y divide-border">
+          <div className="flex-1 overflow-auto custom-scrollbar divide-y divide-border min-h-0">
             {criticalLogs.map((log, i) => (
               <motion.div
                 key={log.id}
@@ -99,8 +136,8 @@ export default function Dashboard() {
         </div>
 
         {/* Cluster Status (OpenShift) */}
-        <div className="rounded-lg border border-border bg-card p-4 space-y-4">
-          <div className="flex items-center justify-between border-b border-border pb-3">
+        <div className="rounded-lg border border-border bg-card p-4 flex flex-col min-h-0">
+          <div className="flex items-center justify-between border-b border-border pb-3 mb-4 shrink-0">
             <span className="text-sm font-medium flex items-center gap-2">
               <Server className="w-4 h-4 text-primary" />
               OpenShift Cluster
@@ -109,7 +146,7 @@ export default function Dashboard() {
           </div>
 
           {clusterMetrics ? (
-            <div className="space-y-5">
+            <div className="space-y-4 flex-1 overflow-auto custom-scrollbar pr-1 min-h-0">
               {/* Nodes */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -160,6 +197,6 @@ export default function Dashboard() {
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 }

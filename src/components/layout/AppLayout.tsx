@@ -11,7 +11,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.className = theme === 'light' ? '' : theme;
     loadAll();
-  }, []);
+  }, [loadAll, theme]);
 
   return (
     <SidebarProvider>

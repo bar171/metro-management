@@ -11,8 +11,6 @@ const METRIC_CONFIGS: { type: MetricType; label: string; color: string; unit: st
   { type: 'throughput', label: 'Throughput', color: 'hsl(172, 66%, 50%)', unit: 'msg/s' },
   { type: 'cpu_usage', label: 'CPU Usage', color: 'hsl(38, 92%, 50%)', unit: '%' },
   { type: 'memory_usage', label: 'Memory Usage', color: 'hsl(0, 72%, 51%)', unit: '%' },
-  { type: 'db_connections', label: 'DB Connections', color: 'hsl(262, 60%, 55%)', unit: 'conn' },
-  { type: 'error_rate', label: 'Error Rate', color: 'hsl(0, 72%, 60%)', unit: '%' },
 ];
 
 export default function MetricsPage() {
@@ -69,7 +67,7 @@ export default function MetricsPage() {
       await refreshMetrics();
     }, 3000);
     return () => clearInterval(interval);
-  }, [pipelines, services, pipelineFilter, serviceFilter]);
+  }, [pipelines, services, pipelineFilter, serviceFilter, appendMetric, refreshMetrics]);
 
   const getChartData = useCallback((type: MetricType) => {
     let filtered = metrics.filter(m => m.type === type);
@@ -151,7 +149,7 @@ export default function MetricsPage() {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {METRIC_CONFIGS.map((mc, i) => {
           const data = getChartData(mc.type);
           const lastValue = data[data.length - 1]?.value ?? 0;
@@ -189,7 +187,7 @@ export default function MetricsPage() {
                         fontSize: '11px',
                       }}
                     />
-                    <Area type="monotone" dataKey="value" stroke={mc.color} fill={`url(#grad-${mc.type})`} strokeWidth={2} dot={false} />
+                    <Area type="monotone" dataKey="value" stroke={mc.color} fill={`url(#grad-${mc.type})`} strokeWidth={2} dot={false} isAnimationActive={false} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>

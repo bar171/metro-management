@@ -11,36 +11,35 @@ const themes: { value: ThemeMode; label: string }[] = [
   { value: 'dark', label: 'Dark' },
   { value: 'midnight', label: 'Midnight Blue' },
   { value: 'cyberpunk', label: 'Cyberpunk' },
+  { value: 'rose', label: 'Rose Gold' },
+  { value: 'forest', label: 'Forest Green' },
 ];
 
 export function AppHeader() {
   const { theme, setTheme, envFilter, setEnvFilter } = useAppStore();
 
+  const envColors = {
+    dev: 'bg-status-healthy/20 border-b-status-healthy/50',
+    prep: 'bg-status-degraded/20 border-b-status-degraded/50',
+    prod: 'bg-status-critical/20 border-b-status-critical/50',
+  };
+
   return (
-    <header className="h-12 flex items-center gap-3 px-3 border-b border-border bg-card/50 backdrop-blur-sm shrink-0">
+    <header className={`h-12 flex items-center gap-3 px-3 border-b shrink-0 ${envColors[envFilter]}`}>
       <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
 
-      <div className="flex-1 flex items-center gap-3">
-        <div className="relative max-w-xs flex-1">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input
-            placeholder="Search pipelines, owner groups..."
-            className="h-8 pl-8 text-xs bg-surface-1 border-border"
-          />
-        </div>
-      </div>
+      <div className="flex-1" />
 
       <div className="flex items-center gap-4">
-
 
         <Select value={envFilter} onValueChange={(v) => setEnvFilter(v as typeof envFilter)}>
           <SelectTrigger className="h-8 w-24 text-xs bg-surface-1">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Envs</SelectItem>
-            <SelectItem value="prod">Prod</SelectItem>
             <SelectItem value="dev">Dev</SelectItem>
+            <SelectItem value="prep">Prep</SelectItem>
+            <SelectItem value="prod">Prod</SelectItem>
           </SelectContent>
         </Select>
 

@@ -39,21 +39,23 @@ setInterval(() => {
   });
 
   // 3. Simulate Kafka lag spikes
-  if (Math.random() < 0.2) {
+  if (Math.random() < 0.5) {
     const p = pipelines[Math.floor(Math.random() * pipelines.length)];
     const pServices = services.filter(s => s.pipelineId === p.id);
     const svc = pServices[Math.floor(Math.random() * pServices.length)];
     if (svc) {
+      // Create a specific spike exactly at 1000 to test the boundary
+      const value = Math.random() > 0.5 ? 1000 : 1200 + Math.random() * 5000;
       metricOrm.append({
         pipelineId: p.id,
         serviceId: svc.id,
         type: 'kafka_lag',
-        value: 1200 + Math.random() * 5000,
+        value: value,
         timestamp: new Date().toISOString()
       });
     }
   }
-}, 5000);
+}, 3000);
 
 // ── Resource Profiles ──
 export const resourceProfileOrm = {
@@ -108,10 +110,10 @@ export const pipelineOrm = {
 
 // ── Groups ──
 export const groupOrm = {
-  async findMany(filter?: { pipelineId?: string }): Promise<Group[]> {
+  async findMany(filter?: { primaryPipelineId?: string }): Promise<Group[]> {
     await delay();
     let result = [...groups];
-    if (filter?.pipelineId) result = result.filter(g => g.pipelineId === filter.pipelineId);
+    if (filter?.primaryPipelineId) result = result.filter(g => g.primaryPipelineId === filter.primaryPipelineId);
     return result;
   },
   async findById(id: string): Promise<Group | undefined> {

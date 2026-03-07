@@ -8,10 +8,10 @@ import Dashboard from "./pages/Dashboard";
 import PipelinesPage from "./pages/PipelinesPage";
 
 import MetricsPage from "./pages/MetricsPage";
-import ResourcesPage from "./pages/ResourcesPage";
-import LivenessPage from "./pages/LivenessPage";
-import PipelineCreatorPage from "./pages/PipelineCreatorPage";
-import LogsPage from "./pages/LogsPage";
+import ServicesPage from "./pages/ResourcesPage";
+import StoragePage from "./pages/StoragePage";
+import BlacklistPage from "./pages/BlacklistPage";
+import BackfillPage from "./pages/BackfillPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,12 +26,11 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/pipelines" element={<PipelinesPage />} />
-            <Route path="/liveness" element={<LivenessPage />} />
-
+            <Route path="/storage" element={<StoragePage />} />
             <Route path="/metrics" element={<MetricsPage />} />
-            <Route path="/resources" element={<ResourcesPage />} />
-            <Route path="/pipeline-creator" element={<PipelineCreatorPage />} />
-            <Route path="/logs" element={<LogsPage />} />
+            <Route path="/services" element={<ServicesPage />} />
+            <Route path="/blacklist" element={<BlacklistPage />} />
+            <Route path="/backfill" element={<BackfillPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
