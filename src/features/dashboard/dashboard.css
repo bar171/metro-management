@@ -1,0 +1,169 @@
+/* ============================================================
+   Dashboard Feature
+   ============================================================ */
+
+/* ----- DashboardPage ----- */
+.dashboard-page {
+  @apply p-6 gap-6 flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden;
+}
+
+.dashboard-page__header {
+  @apply flex items-center justify-between shrink-0;
+}
+
+.dashboard-page__title {
+  @apply text-lg font-semibold;
+}
+
+.dashboard-page__subtitle {
+  @apply text-xs text-muted-foreground font-mono;
+}
+
+.dashboard-page__loading {
+  @apply flex items-center justify-center h-full;
+}
+
+.dashboard-page__loading-text {
+  @apply font-mono text-muted-foreground;
+}
+
+.dashboard-page__bottom-grid {
+  @apply grid lg:grid-cols-3 gap-6 flex-1 min-h-0;
+}
+
+/* ----- KpiGrid ----- */
+.kpi-grid {
+  @apply grid grid-cols-2 lg:grid-cols-4 gap-6 shrink-0;
+}
+
+/* ----- LiveAlertFeed ----- */
+.alert-feed {
+  @apply lg:col-span-2 rounded-lg border border-border bg-card flex flex-col min-h-0;
+}
+
+.alert-feed__header {
+  @apply px-4 py-3 border-b border-border flex items-center justify-between shrink-0;
+}
+
+.alert-feed__title {
+  @apply text-sm font-medium cursor-pointer select-none transition-opacity;
+}
+
+.alert-feed__pulse {
+  @apply w-2 h-2 rounded-full bg-status-healthy animate-pulse;
+}
+
+.alert-feed__list {
+  @apply flex-1 overflow-auto divide-y divide-border min-h-0;
+}
+
+.alert-feed__item {
+  @apply px-4 py-2.5 flex items-start gap-3 text-xs hover:bg-surface-1 transition-colors;
+}
+
+.alert-feed__message {
+  @apply flex-1 font-mono leading-relaxed;
+}
+
+.alert-feed__time {
+  @apply text-muted-foreground font-mono whitespace-nowrap;
+}
+
+/* Easter egg toast */
+.alert-feed__easter-egg {
+  @apply flex items-center gap-5 bg-yellow-400 text-yellow-950 px-6 py-5 rounded-2xl shadow-[0_0_60px_rgba(250,204,21,0.6)] border-4 border-yellow-500 transform animate-in slide-in-from-top-8 duration-500;
+}
+
+.alert-feed__easter-egg-icon {
+  @apply text-5xl animate-bounce;
+}
+
+.alert-feed__easter-egg-title {
+  @apply font-black text-2xl tracking-[0.2em] uppercase text-yellow-900 border-b border-yellow-500/50 pb-1 whitespace-nowrap;
+}
+
+.alert-feed__easter-egg-text {
+  @apply font-bold text-xl mt-1;
+}
+
+/* ----- ClusterStatusCard ----- */
+.cluster-card {
+  @apply rounded-lg border border-border bg-card p-4 flex flex-col min-h-0;
+}
+
+.cluster-card__header {
+  @apply flex items-center justify-between border-b border-border pb-3 mb-4 shrink-0;
+}
+
+.cluster-card__title {
+  @apply text-sm font-medium flex items-center gap-2;
+}
+
+.cluster-card__title-icon {
+  @apply w-4 h-4 text-primary;
+}
+
+.cluster-card__live-label {
+  @apply text-[10px] font-mono text-muted-foreground;
+}
+
+.cluster-card__body {
+  @apply space-y-4 flex-1 overflow-auto pr-1 min-h-0;
+}
+
+.cluster-card__nodes-row {
+  @apply flex items-center justify-between;
+}
+
+.cluster-card__nodes-label {
+  @apply flex items-center gap-2;
+}
+
+.cluster-card__nodes-icon {
+  @apply w-4 h-4 text-muted-foreground;
+}
+
+.cluster-card__nodes-text {
+  @apply text-xs font-medium;
+}
+
+.cluster-card__nodes-value {
+  @apply font-mono text-sm;
+}
+
+.cluster-card__nodes-ready {
+  @apply text-xs text-status-healthy;
+}
+
+.cluster-card__loading {
+  @apply py-8 text-center text-xs font-mono text-muted-foreground animate-pulse;
+}
+
+/* ----- UsageBar ----- */
+.usage-bar {
+  @apply space-y-2;
+}
+
+.usage-bar__header {
+  @apply flex items-center justify-between text-xs;
+}
+
+.usage-bar__label {
+  @apply flex items-center gap-2 font-medium;
+}
+
+.usage-bar__label-icon {
+  @apply w-3.5 h-3.5;
+}
+
+.usage-bar__pct {
+  @apply font-mono;
+}
+
+.usage-bar__track {
+  @apply h-2 w-full bg-surface-2 rounded-full overflow-hidden;
+}
+
+.usage-bar__footer {
+  @apply text-[10px] text-muted-foreground font-mono text-right;
+}

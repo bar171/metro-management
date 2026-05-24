@@ -1,0 +1,181 @@
+/* ============================================================
+   Layout — AppLayout, AppHeader, AppSidebar
+   ============================================================ */
+
+/* ----- AppLayout ----- */
+.app-layout {
+  @apply min-h-screen flex w-full;
+}
+
+.app-layout__main-column {
+  @apply flex-1 flex flex-col min-w-0;
+}
+
+.app-layout__content {
+  @apply flex-1 overflow-auto;
+}
+
+/* ----- AppHeader ----- */
+.app-header {
+  @apply h-12 flex items-center gap-3 px-3 border-b shrink-0;
+}
+
+.app-header__spacer {
+  @apply flex-1;
+}
+
+.app-header__controls {
+  @apply flex items-center gap-4;
+}
+
+.app-header__env-trigger {
+  @apply h-8 w-24 text-xs bg-surface-1;
+}
+
+.app-header__theme-trigger {
+  @apply h-8 w-32 text-xs bg-surface-1;
+}
+
+.app-header__theme-icon {
+  @apply h-3.5 w-3.5 mr-1;
+}
+
+.app-header__sidebar-trigger {
+  @apply text-muted-foreground hover:text-foreground;
+}
+
+/* Environment color bands */
+.app-header--dev {
+  @apply bg-status-healthy/20 border-b-status-healthy/50;
+}
+
+.app-header--prep {
+  @apply bg-status-degraded/20 border-b-status-degraded/50;
+}
+
+.app-header--prod {
+  @apply bg-status-critical/20 border-b-status-critical/50;
+}
+
+/* ----- AppSidebar ----- */
+.sidebar-header {
+  @apply p-4 border-b border-sidebar-border/50;
+}
+
+.sidebar-logo {
+  @apply flex items-center gap-3 cursor-pointer transition-all duration-300;
+}
+
+.sidebar-logo__glow {
+  @apply absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 transition-opacity duration-700;
+}
+
+.sidebar-logo__outer {
+  @apply relative flex-shrink-0;
+}
+
+.sidebar-logo__icon-wrapper {
+  @apply relative w-10 h-10 flex items-center justify-center;
+}
+
+.sidebar-logo__spin-border {
+  @apply absolute inset-0 border border-primary/20 rounded-lg rotate-45 transition-transform duration-500;
+}
+.group:hover .sidebar-logo__spin-border {
+  transform: rotate(90deg);
+}
+
+.sidebar-logo__icon-box {
+  @apply relative w-8 h-8 bg-sidebar-accent/50 rounded-lg flex items-center justify-center border border-primary/30 overflow-hidden shadow-2xl;
+}
+
+.sidebar-logo__img {
+  @apply w-5 h-5 z-10;
+  filter: drop-shadow(0 0 8px hsl(var(--primary) / 0.8));
+}
+
+.sidebar-logo__pattern {
+  @apply absolute inset-0 opacity-10;
+  background: radial-gradient(circle, hsl(var(--sidebar-primary)) 1px, transparent 1px);
+  background-size: 4px 4px;
+}
+
+.sidebar-logo__status {
+  @apply absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full border border-sidebar z-30;
+}
+
+.sidebar-logo__status-pulse {
+  @apply absolute inset-0 bg-emerald-500 rounded-full;
+}
+
+.sidebar-logo__text-wrapper {
+  @apply flex flex-col justify-center min-w-[120px];
+}
+
+.sidebar-logo__title-row {
+  @apply flex items-center gap-1.5;
+}
+
+.sidebar-logo__title {
+  @apply text-[13px] font-extrabold text-sidebar-accent-foreground tracking-[0.05em] uppercase leading-none font-mono;
+}
+
+.sidebar-logo__title-accent {
+  @apply text-primary italic;
+}
+
+.sidebar-logo__subtitle-row {
+  @apply flex items-center gap-1.5 mt-1;
+}
+
+.sidebar-logo__subtitle-line {
+  @apply h-[1px] w-3 bg-primary/40;
+}
+
+.sidebar-logo__subtitle {
+  @apply text-[9px] text-sidebar-foreground/60 font-medium tracking-[0.2em] uppercase leading-none;
+}
+
+/* Navigation */
+.sidebar-nav-label {
+  @apply text-[10px] uppercase tracking-wider text-sidebar-foreground/50;
+}
+
+.sidebar-nav-link {
+  @apply flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors;
+}
+
+.sidebar-nav-link--active {
+  @apply bg-sidebar-accent text-sidebar-primary font-medium;
+}
+
+.sidebar-nav-icon-wrapper {
+  @apply relative;
+}
+
+.sidebar-nav-icon {
+  @apply h-4 w-4 shrink-0;
+}
+
+.sidebar-nav-label-text {
+  @apply text-sm;
+}
+
+/* Degraded indicator ping */
+.sidebar-degraded-dot {
+  @apply absolute -top-1 -right-1 flex h-2 w-2;
+}
+
+.sidebar-degraded-dot__ping {
+  @apply animate-ping absolute inline-flex h-full w-full rounded-full bg-status-critical opacity-75;
+}
+
+.sidebar-degraded-dot__dot {
+  @apply relative inline-flex rounded-full h-2 w-2 bg-status-critical;
+}
+
+/* Easter egg train */
+.sidebar-train {
+  @apply fixed top-1/2 z-[600] h-[900px] w-auto pointer-events-none;
+  animation: train-ride 3s linear forwards;
+}

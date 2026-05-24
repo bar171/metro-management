@@ -1,0 +1,173 @@
+/* ============================================================
+   Shared Components — StatusIndicators
+   ============================================================ */
+
+/* ----- StatusDot ----- */
+.status-dot {
+  @apply inline-block rounded-full shrink-0;
+}
+
+.status-dot--xs {
+  @apply w-1.5 h-1.5;
+}
+
+.status-dot--sm {
+  @apply w-2 h-2;
+}
+
+.status-dot--md {
+  @apply w-3 h-3;
+}
+
+.status-dot--lg {
+  @apply w-5 h-5;
+}
+
+.status-dot--healthy {
+  @apply bg-status-healthy;
+}
+
+.status-dot--degraded {
+  @apply bg-status-degraded;
+}
+
+.status-dot--lagging {
+  @apply bg-status-lagging;
+}
+
+/* ----- PriorityBadge ----- */
+.priority-badge {
+  @apply inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wider;
+}
+
+.priority-badge--critical {
+  @apply bg-status-critical/15 text-status-critical;
+}
+
+.priority-badge--high {
+  @apply bg-status-degraded/15 text-status-degraded;
+}
+
+.priority-badge--normal {
+  @apply bg-muted text-muted-foreground;
+}
+
+/* ----- SeverityBadge ----- */
+.severity-badge {
+  @apply inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wider;
+}
+
+.severity-badge--critical {
+  @apply bg-status-critical/15 text-status-critical;
+}
+
+.severity-badge--warning {
+  @apply bg-status-degraded/15 text-status-degraded;
+}
+
+.severity-badge--info {
+  @apply bg-primary/10 text-primary;
+}
+
+/* ----- KpiTile ----- */
+.kpi-tile {
+  @apply relative rounded-xl border border-[#333] bg-background/50 backdrop-blur-sm p-6 flex flex-col items-center text-center gap-1 overflow-hidden;
+}
+
+.kpi-tile--accent {
+  @apply border-accent/50;
+}
+
+.kpi-tile--warning {
+  @apply border-amber-500/50;
+}
+
+.kpi-tile--critical {
+  @apply border-destructive/50;
+}
+
+.kpi-tile__glow {
+  @apply absolute -top-12 -left-12 w-32 h-32 rounded-full blur-[50px] opacity-20 pointer-events-none;
+}
+
+.kpi-tile__glow--critical {
+  @apply bg-destructive;
+}
+
+.kpi-tile__glow--warning {
+  @apply bg-amber-500;
+}
+
+.kpi-tile__glow--accent {
+  @apply bg-accent;
+}
+
+.kpi-tile__glow--default {
+  @apply bg-primary;
+}
+
+.kpi-tile__header {
+  @apply flex w-full items-center justify-center relative z-10;
+}
+
+.kpi-tile__icon {
+  @apply absolute left-0 w-4 h-4 text-muted-foreground/60;
+}
+
+.kpi-tile__label {
+  @apply text-xs uppercase tracking-wider text-muted-foreground font-sans font-medium;
+}
+
+.kpi-tile__value {
+  @apply text-4xl font-extrabold font-sans tabular-nums tracking-tight relative z-10 mt-1;
+}
+
+.kpi-tile__subtitle-wrapper {
+  @apply mt-2 min-h-[20px] flex items-center justify-center relative z-10;
+}
+
+.kpi-tile__subtitle {
+  @apply text-[10px] font-sans font-medium uppercase tracking-wider px-2 py-0.5 rounded;
+}
+
+.kpi-tile__subtitle--critical {
+  @apply bg-destructive/20 text-destructive;
+}
+
+.kpi-tile__subtitle--warning {
+  @apply bg-amber-500/20 text-amber-500;
+}
+
+.kpi-tile__subtitle--default {
+  @apply text-muted-foreground;
+}
+
+/* ----- EnvBadge ----- */
+.env-badge {
+  @apply inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wider;
+}
+
+.env-badge--prod {
+  @apply bg-status-critical/10 text-status-critical;
+}
+
+.env-badge--dev {
+  @apply bg-primary/10 text-primary;
+}
+
+/* ----- TypeBadge ----- */
+.type-badge {
+  @apply inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wider border;
+}
+
+.type-badge--basic {
+  @apply border-muted text-muted-foreground bg-muted/10;
+}
+
+.type-badge--stream {
+  @apply border-blue-500/30 text-blue-500 bg-blue-500/10;
+}
+
+.type-badge--backfill {
+  @apply border-purple-500/30 text-purple-500 bg-purple-500/10;
+}

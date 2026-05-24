@@ -1,0 +1,130 @@
+/* ============================================================
+   Blacklist Feature
+   ============================================================ */
+
+/* ----- BlacklistPage ----- */
+.blacklist-page {
+  @apply p-6 space-y-6 max-w-7xl mx-auto;
+}
+
+.blacklist-page__header {
+  @apply flex flex-col md:flex-row md:items-center justify-between gap-4;
+}
+
+.blacklist-page__title {
+  @apply text-2xl font-bold tracking-tight flex items-center gap-2;
+}
+
+.blacklist-page__title-icon {
+  @apply h-6 w-6 text-status-critical;
+}
+
+.blacklist-page__description {
+  @apply text-muted-foreground;
+}
+
+.blacklist-page__actions {
+  @apply flex items-center gap-2;
+}
+
+.blacklist-page__filter-bar {
+  @apply bg-card border rounded-lg p-4 shadow-sm flex items-center gap-4;
+}
+
+.blacklist-page__search-wrapper {
+  @apply relative flex-1;
+}
+
+.blacklist-page__search-icon {
+  @apply absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground;
+}
+
+/* ----- BlacklistTable ----- */
+.blacklist-table {
+  @apply rounded-lg border bg-card shadow-sm overflow-hidden;
+}
+
+.blacklist-table__header {
+  @apply bg-muted/50;
+}
+
+.blacklist-table__action-col {
+  @apply text-right;
+}
+
+.blacklist-table__row {
+  @apply hover:bg-muted/30;
+}
+
+.blacklist-table__scope-cell {
+  @apply font-semibold;
+}
+
+.blacklist-table__scope-badge {
+  @apply text-primary border-primary/30;
+}
+
+.blacklist-table__target-code {
+  @apply text-[10px] font-mono;
+}
+
+.blacklist-table__reason-cell {
+  @apply max-w-xs truncate text-muted-foreground;
+}
+
+.blacklist-table__time-cell {
+  @apply text-[10px] text-muted-foreground;
+}
+
+.blacklist-table__action-cell {
+  @apply text-right;
+}
+
+.blacklist-table__delete-btn {
+  @apply hover:text-status-critical;
+}
+
+.blacklist-table__delete-icon {
+  @apply h-4 w-4;
+}
+
+.blacklist-table__empty {
+  @apply h-32 text-center text-muted-foreground;
+}
+
+.blacklist-table__empty-inner {
+  @apply flex flex-col items-center gap-2;
+}
+
+.blacklist-table__empty-icon {
+  @apply h-8 w-8 text-muted-foreground/30;
+}
+
+/* ----- Add Dialogs ----- */
+.blacklist-btn--source {
+  @apply gap-2 border-status-degraded/50 hover:bg-status-degraded/10;
+}
+
+.blacklist-btn--destination {
+  @apply gap-2 border-status-critical/50 hover:bg-status-critical/10;
+}
+
+.blacklist-btn--broker {
+  @apply gap-2 border-primary/50 hover:bg-primary/10;
+}
+
+.blacklist-btn__icon {
+  @apply h-4 w-4;
+}
+
+.blacklist-dialog__form {
+  @apply space-y-4 py-4;
+}
+
+.blacklist-dialog__field {
+  @apply space-y-2;
+}
+
+.blacklist-dialog__label {
+  @apply text-sm font-medium;
+}

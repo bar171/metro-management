@@ -1,0 +1,74 @@
+/* ============================================================
+   Metrics Feature
+   ============================================================ */
+
+/* ----- MetricsPage ----- */
+.metrics-page {
+  @apply p-6 space-y-6;
+}
+
+.metrics-page__header {
+  @apply flex items-center justify-between;
+}
+
+.metrics-page__title {
+  @apply text-lg font-semibold;
+}
+
+.metrics-page__subtitle {
+  @apply text-xs text-muted-foreground font-mono;
+}
+
+.metrics-page__grid {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-4;
+}
+
+/* ----- MetricChart ----- */
+.metric-chart {
+  @apply rounded-lg border border-border bg-card p-4;
+}
+
+.metric-chart__header {
+  @apply flex items-center justify-between mb-3;
+}
+
+.metric-chart__label {
+  @apply text-xs font-medium;
+}
+
+.metric-chart__value {
+  @apply font-mono text-sm font-bold tabular-nums;
+}
+
+.metric-chart__unit {
+  @apply text-muted-foreground text-[10px];
+}
+
+.metric-chart__container {
+  @apply h-32;
+}
+
+/* ----- MetricsFilterBar ----- */
+.metrics-filter {
+  @apply flex items-center gap-2;
+}
+
+.metrics-filter__pulse {
+  @apply w-2 h-2 rounded-full bg-status-healthy animate-pulse;
+}
+
+.metrics-filter__live-label {
+  @apply text-xs text-muted-foreground mr-2;
+}
+
+.metrics-filter__pipeline-trigger {
+  @apply h-8 w-56 text-xs bg-surface-1;
+}
+
+.metrics-filter__service-trigger {
+  @apply h-8 w-56 text-xs bg-surface-1 border-primary/50;
+}
+
+.metrics-filter__global-item {
+  @apply font-semibold text-primary;
+}

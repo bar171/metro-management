@@ -1,0 +1,375 @@
+/* ============================================================
+   Storage Feature
+   ============================================================ */
+
+/* ----- StoragePage ----- */
+.storage-page {
+  @apply p-6 md:p-8 max-w-7xl mx-auto space-y-8 flex flex-col h-full relative z-0;
+}
+
+.storage-page__header {
+  @apply flex flex-col gap-4 shrink-0;
+}
+
+.storage-page__title {
+  @apply text-3xl font-bold tracking-tight text-foreground flex items-center gap-2;
+}
+
+.storage-page__toolbar-row {
+  @apply flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4;
+}
+
+.storage-page__breadcrumbs-wrapper {
+  @apply flex-1 w-full min-w-0;
+}
+
+.storage-page__controls {
+  @apply flex items-center gap-3 shrink-0;
+}
+
+.storage-page__search-wrapper {
+  @apply relative mr-2;
+}
+
+.storage-page__search-icon {
+  @apply absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground;
+}
+
+.storage-page__search-input {
+  @apply pl-9 w-64 h-9 bg-background focus-visible:ring-1;
+}
+
+.storage-page__search-clear {
+  @apply absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground;
+}
+
+.storage-page__search-clear-icon {
+  @apply h-3 w-3;
+}
+
+.storage-page__body {
+  @apply flex-1 overflow-auto -mx-6 px-6 -mb-8 pb-8;
+}
+
+.storage-page__sections {
+  @apply space-y-8;
+}
+
+.storage-page__section-label {
+  @apply text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4;
+}
+
+.storage-page__section-label--global {
+  @apply text-sm font-semibold text-primary uppercase tracking-wider mb-4 flex items-center gap-2;
+}
+
+.storage-page__section-label-icon {
+  @apply h-4 w-4;
+}
+
+.storage-page__grid--grid {
+  @apply grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6;
+}
+
+.storage-page__grid--list {
+  @apply grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+}
+
+/* Empty state */
+.storage-page__empty {
+  @apply flex flex-col items-center justify-center p-12 text-center border rounded-xl bg-card/50 border-dashed h-64;
+}
+
+.storage-page__empty-icon-wrapper {
+  @apply h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4;
+}
+
+.storage-page__empty-icon {
+  @apply h-6 w-6 text-primary;
+}
+
+.storage-page__empty-title {
+  @apply text-lg font-medium;
+}
+
+.storage-page__empty-text {
+  @apply text-muted-foreground mt-2 max-w-sm;
+}
+
+/* Delete dialog */
+.storage-delete-action {
+  @apply bg-destructive hover:bg-destructive/90 text-destructive-foreground;
+}
+
+/* Context menu */
+.storage-ctx-menu {
+  @apply w-64;
+}
+
+.storage-ctx-icon {
+  @apply mr-2 h-4 w-4;
+}
+
+/* ----- FolderCard ----- */
+.folder-card {
+  @apply relative rounded-xl border transition-all cursor-pointer;
+}
+
+.folder-card--grid {
+  @apply p-4;
+}
+
+.folder-card--list {
+  @apply p-3 flex items-center gap-3;
+}
+
+.folder-card--default {
+  @apply border-border bg-card hover:border-primary/30 hover:shadow-md;
+}
+
+.folder-card--selected {
+  @apply ring-2 ring-primary border-primary bg-primary/5 shadow-lg;
+}
+
+.folder-card__check-overlay {
+  @apply absolute top-2 right-2 z-10;
+}
+
+.folder-card__check-circle {
+  @apply w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all;
+}
+
+.folder-card__check-circle--checked {
+  @apply bg-primary border-primary;
+}
+
+.folder-card__check-circle--unchecked {
+  @apply border-muted-foreground/30 bg-background;
+}
+
+.folder-card__check-icon {
+  @apply w-3 h-3 text-primary-foreground;
+}
+
+.folder-card__icon-wrapper {
+  @apply mb-3 flex items-center justify-center;
+}
+
+.folder-card__icon-wrapper--list {
+  @apply mb-0 shrink-0;
+}
+
+.folder-card__icon-bg--grid {
+  @apply w-12 h-12 rounded-xl flex items-center justify-center transition-colors;
+}
+
+.folder-card__icon-bg--list {
+  @apply w-8 h-8 rounded-lg flex items-center justify-center transition-colors;
+}
+
+.folder-card__icon--grid {
+  @apply w-6 h-6;
+}
+
+.folder-card__icon--list {
+  @apply w-4 h-4;
+}
+
+.folder-card__icon--global {
+  @apply text-primary;
+}
+
+.folder-card__icon-bg--global {
+  @apply bg-primary/10;
+}
+
+.folder-card__icon--env {
+  @apply text-muted-foreground;
+}
+
+.folder-card__icon-bg--env {
+  @apply bg-muted/50;
+}
+.group:hover .folder-card__icon-bg--env {
+  @apply bg-muted;
+}
+
+.folder-card__name {
+  @apply text-sm font-medium truncate text-center;
+}
+
+.folder-card__name--list {
+  @apply text-left;
+}
+
+.folder-card__global-badge {
+  @apply text-[9px] uppercase tracking-wider mt-1;
+}
+
+.folder-card__env-badge {
+  @apply text-[9px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground mt-1;
+}
+
+.folder-card__item-count {
+  @apply text-xs text-muted-foreground;
+}
+
+.folder-card__list-meta {
+  @apply flex-1 min-w-0;
+}
+
+/* ----- ItemCard ----- */
+.item-card {
+  @apply relative rounded-xl border transition-all cursor-pointer;
+}
+
+.item-card--grid {
+  @apply p-4;
+}
+
+.item-card--list {
+  @apply p-3 flex items-center gap-3;
+}
+
+.item-card--default {
+  @apply border-border bg-card hover:border-primary/30 hover:shadow-md;
+}
+
+.item-card--selected {
+  @apply ring-2 ring-primary border-primary bg-primary/5 shadow-lg;
+}
+
+.item-card__check-overlay {
+  @apply absolute top-2 right-2 z-10;
+}
+
+.item-card__check-circle {
+  @apply w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all;
+}
+
+.item-card__check-circle--checked {
+  @apply bg-primary border-primary;
+}
+
+.item-card__check-circle--unchecked {
+  @apply border-muted-foreground/30 bg-background;
+}
+
+.item-card__check-icon {
+  @apply w-3 h-3 text-primary-foreground;
+}
+
+.item-card__icon-wrapper--grid {
+  @apply mb-3 flex items-center justify-center;
+}
+
+.item-card__icon-wrapper--list {
+  @apply shrink-0;
+}
+
+.item-card__icon-bg--grid {
+  @apply w-12 h-12 rounded-xl flex items-center justify-center transition-colors;
+}
+
+.item-card__icon-bg--list {
+  @apply w-8 h-8 rounded-lg flex items-center justify-center transition-colors;
+}
+
+.item-card__icon--grid {
+  @apply w-6 h-6;
+}
+
+.item-card__icon--list {
+  @apply w-4 h-4;
+}
+
+.item-card__icon--link {
+  @apply text-blue-500;
+}
+
+.item-card__icon-bg--link {
+  @apply bg-blue-500/10;
+}
+.group:hover .item-card__icon-bg--link {
+  @apply bg-blue-500/20;
+}
+
+.item-card__icon--file {
+  @apply text-muted-foreground;
+}
+
+.item-card__icon-bg--file {
+  @apply bg-muted/50;
+}
+.group:hover .item-card__icon-bg--file {
+  @apply bg-muted;
+}
+
+.item-card__name {
+  @apply text-sm font-medium truncate text-center;
+}
+
+.item-card__name--list {
+  @apply text-left;
+}
+
+.item-card__type-label {
+  @apply text-[10px] mt-1;
+}
+
+.item-card__type-label--link {
+  @apply text-blue-500;
+}
+
+.item-card__type-label--file {
+  @apply text-muted-foreground;
+}
+
+.item-card__url {
+  @apply text-[10px] text-muted-foreground truncate max-w-[120px] mx-auto mt-0.5;
+}
+
+.item-card__list-meta {
+  @apply flex-1 min-w-0;
+}
+
+/* ----- SelectionToolbar ----- */
+.sel-toolbar {
+  @apply flex items-center gap-2;
+}
+
+.sel-toolbar__view-btn {
+  @apply h-9 w-9;
+}
+
+.sel-toolbar__view-icon {
+  @apply h-4 w-4;
+}
+
+.sel-toolbar__select-btn {
+  @apply h-9 gap-2 text-xs;
+}
+
+.sel-toolbar__select-icon {
+  @apply h-4 w-4;
+}
+
+.sel-toolbar__count {
+  @apply text-xs font-medium text-primary;
+}
+
+.sel-toolbar__action-btn {
+  @apply h-9 gap-2 text-xs;
+}
+
+.sel-toolbar__action-icon {
+  @apply h-4 w-4;
+}
+
+.sel-toolbar__exit-btn {
+  @apply h-9 w-9;
+}
+
+.sel-toolbar__exit-icon {
+  @apply h-4 w-4;
+}

@@ -1,0 +1,147 @@
+/* ============================================================
+   Services Feature
+   ============================================================ */
+
+/* ----- ServicesPage ----- */
+.services-page {
+  @apply p-6 gap-4 flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden;
+}
+
+.services-page__header {
+  @apply flex items-center justify-between shrink-0;
+}
+
+.services-page__title {
+  @apply text-lg font-semibold;
+}
+
+.services-page__subtitle {
+  @apply text-xs text-muted-foreground font-mono;
+}
+
+.services-page__controls {
+  @apply flex items-center gap-3;
+}
+
+.services-page__search-wrapper {
+  @apply relative w-64;
+}
+
+.services-page__search-icon {
+  @apply absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground;
+}
+
+.services-page__search-input {
+  @apply h-8 pl-8 text-xs bg-surface-1;
+}
+
+.services-page__rollout-btn {
+  @apply gap-2 text-xs h-8;
+}
+
+.services-page__rollout-icon {
+  @apply w-3.5 h-3.5;
+}
+
+/* Table */
+.services-table {
+  @apply rounded-lg border border-border bg-card flex-1 min-h-0 flex flex-col overflow-hidden;
+}
+
+.services-table__header {
+  @apply grid grid-cols-[60px_1fr_1fr_140px_240px_120px] items-center px-4 py-3 bg-surface-1 border-b border-border shrink-0 z-10 pr-[20px];
+}
+
+.services-table__header-cell {
+  @apply text-[10px] font-mono uppercase text-muted-foreground font-medium;
+}
+
+.services-table__header-cell--center {
+  @apply text-[10px] font-mono uppercase text-muted-foreground font-medium text-center;
+}
+
+.services-table__header-cell--right {
+  @apply text-[10px] font-mono uppercase text-muted-foreground font-medium text-right pr-2;
+}
+
+.services-table__body {
+  @apply flex-1 min-h-0 overflow-y-auto flex flex-col;
+}
+
+.services-table__empty {
+  @apply flex items-center justify-center p-8 text-xs text-muted-foreground font-mono;
+}
+
+/* ----- ServiceRow ----- */
+.service-row {
+  @apply grid grid-cols-[60px_1fr_1fr_140px_240px_120px] items-center px-4 py-2 border-b border-border hover:bg-surface-1 transition-colors text-xs;
+}
+
+.service-row__status {
+  @apply flex justify-center;
+}
+
+.service-row__name {
+  @apply font-mono font-medium truncate pr-4;
+}
+
+.service-row__pipeline {
+  @apply text-muted-foreground truncate pr-4;
+}
+
+.service-row__replicas {
+  @apply flex items-center justify-center gap-1;
+}
+
+.service-row__replica-btn {
+  @apply h-6 w-6;
+}
+
+.service-row__replica-icon {
+  @apply h-3 w-3;
+}
+
+.service-row__replica-value {
+  @apply font-mono font-bold w-6 text-center tabular-nums;
+}
+
+.service-row__resources {
+  @apply flex items-center gap-2;
+}
+
+.service-row__resource-group {
+  @apply flex items-center gap-1 w-20;
+}
+
+.service-row__resource-input {
+  @apply h-7 w-16 text-xs font-mono px-1.5;
+}
+
+.service-row__resource-unit {
+  @apply text-[10px] text-muted-foreground font-mono;
+}
+
+.service-row__actions {
+  @apply text-right flex justify-end;
+}
+
+.service-row__rollout-btn {
+  @apply h-7 text-[10px] gap-1;
+}
+
+.service-row__rollout-icon {
+  @apply h-3 w-3;
+}
+
+/* ----- ServiceFilters ----- */
+.service-filter__trigger {
+  @apply h-8 w-[140px] text-xs;
+}
+
+.service-filter__trigger--pipeline {
+  @apply h-8 w-[180px] text-xs;
+}
+
+.service-filter__trigger--name {
+  @apply h-8 w-[180px] text-xs;
+}
